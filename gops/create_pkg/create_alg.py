@@ -48,3 +48,22 @@ def create_alg(**kwargs):
 
     print("Create algorithm successfully!")
     return alg
+
+
+def create_alg_new(**kwargs):
+    alg_name = kwargs["algorithm"]
+    alg_file_name = alg_name.lower()
+    try:
+        module = importlib.import_module("gops.algorithm." + alg_file_name)
+    except NotImplementedError:
+        raise NotImplementedError("This algorithm does not exist")
+
+    # Serial
+    if hasattr(module, alg_name):
+        alg_cls = getattr(module, alg_name)
+        alg = alg_cls(**kwargs)
+    else:
+        raise NotImplementedError("This algorithm is not properly defined")
+
+    print("Create algorithm successfully!")
+    return alg

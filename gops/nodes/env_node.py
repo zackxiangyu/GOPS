@@ -1,4 +1,5 @@
 import numpy as np
+from gops.create_pkg.create_env import create_env
 from gops.utils.common_utils import get_class_from_str
 from gops.nodes.node import Node
 from gops.utils.shared_objects import SharedArray
@@ -64,8 +65,8 @@ class EnvNode(Node):
     @staticmethod
     def create_env(ns_config: dict):
         env_config = ns_config["env"]
-        env_class = get_class_from_str(env_config.get("import", ""), env_config["name"])
-        env = env_class(**env_config.get("params", {}))
+        # env_class = get_class_from_str(env_config.get("import", ""), env_config["name"])
+        env = create_env(**env_config.get("params", {}))
         return env
 
     def run(self):

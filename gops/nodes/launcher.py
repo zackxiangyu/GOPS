@@ -17,7 +17,7 @@ def deep_update(dst, src):
 
 
 def get_node_class(node_class, node_params):
-    import_name = node_params.get("import", "onerl.nodes")
+    import_name = node_params.get("import", "gops.nodes")
     return get_class_from_str(import_name, node_class)
 
 

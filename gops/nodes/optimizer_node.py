@@ -6,6 +6,7 @@ import time
 import torch
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
+from gops.create_pkg.create_alg import create_alg_new
 from gops.utils.common_utils import get_class_from_str
 from gops.utils.shared_objects import SharedStateDict
 from gops.utils.shared_objects import BatchCuda
@@ -17,22 +18,22 @@ class OptimizerNode(Node):
     def create_algo(ns_config: dict, net_device: torch.device = None, use_ddp: bool = False):
         algo_config = ns_config["algorithm"]
         # create network
-        network = {k: get_class_from_str(v.get("import", ""), v["name"])(**v.get("params", {}))
-                   for k, v in algo_config.get("network", {}).items()}
-        if net_device is not None:
-            device_ids = [net_device] if net_device.type != "cpu" else None
-            network = {k: DistributedDataParallel(v.to(net_device), device_ids=device_ids)
-                       if use_ddp and len(list(v.parameters())) else v.to(net_device)
-                       for k, v in network.items()}
-
-        algo_class = get_class_from_str(algo_config.get("import", ""), algo_config["name"])
-        return algo_class(network=network, env_params=ns_config["env"], **algo_config.get("params", {}))
+        # network = {k: get_class_from_str(v.get("import", ""), v["name"])(**v.get("params", {}))
+        #            for k, v in algo_config.get("network", {}).items()}
+        # if net_device is not None:
+        #     device_ids = [net_device] if net_device.type != "cpu" else None
+        #     network = {k: DistributedDataParallel(v.to(net_device), device_ids=device_ids)
+        #                if use_ddp and len(list(v.parameters())) else v.to(net_device)
+        #                for k, v in network.items()}
+        # algo_class = get_class_from_str(algo_config.get("import", ""), algo_config["name"])
+        return create_alg_new(**algo_config.get("params", {}))
 
     @staticmethod
     def node_create_shared_objects(node_class: str, num: int, ns_config: dict):
         objects = Node.node_create_shared_objects(node_class, num, ns_config)
         # policy state dict example
-        example_policy_state_dict = OptimizerNode.create_algo(ns_config).policy_state_dict()
+        algo = OptimizerNode.create_algo(ns_config)
+        example_policy_state_dict = algo.networks.policy.state_dict()
         # rank 0 only, policy update
         objects[0].update({
             "update_lock": mp.Lock(),
