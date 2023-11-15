@@ -18,6 +18,7 @@ class Node:
         self.config = node_config
 
         self.ns_config = ns_config
+        self.all_args = ns_config["all_args"]  # The complete parameters dict of GOPS.
         self.global_objects = global_objects
 
         self.objects = self.global_objects[self.node_name]

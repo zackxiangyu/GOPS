@@ -16,7 +16,7 @@ from gops.nodes.node import Node
 class OptimizerNode(Node):
     @staticmethod
     def create_algo(ns_config: dict, net_device: torch.device = None, use_ddp: bool = False):
-        algo_config = ns_config["algorithm"]
+        config = ns_config["all_args"]
         # create network
         # network = {k: get_class_from_str(v.get("import", ""), v["name"])(**v.get("params", {}))
         #            for k, v in algo_config.get("network", {}).items()}
@@ -26,7 +26,10 @@ class OptimizerNode(Node):
         #                if use_ddp and len(list(v.parameters())) else v.to(net_device)
         #                for k, v in network.items()}
         # algo_class = get_class_from_str(algo_config.get("import", ""), algo_config["name"])
-        return create_alg_new(**algo_config.get("params", {}))
+        algo = create_alg_new(**config)
+        if net_device is not None:
+            algo.to(net_device)
+        return algo
 
     @staticmethod
     def node_create_shared_objects(node_class: str, num: int, ns_config: dict):
@@ -68,7 +71,7 @@ class OptimizerNode(Node):
 
         # model
         algorithm = self.create_algo(self.ns_config, device, use_ddp)
-        algorithm.train()
+        algorithm.networks.train()
 
         # ticks
         metric_shared = self.global_objects.get(self.find("MetricNode"), {})
@@ -81,13 +84,13 @@ class OptimizerNode(Node):
         local_update_state_dict = None
         shared_update_state_dict = None
         if self.node_rank == 0:
-            local_update_state_dict = algorithm.policy_state_dict()
+            local_update_state_dict = algorithm.networks.policy.state_dict()
             shared_update_state_dict = self.objects["update_state_dict"]
             shared_update_state_dict.initialize("publisher", device)
 
         # save model
         last_save_model_time = time.time()
-        save_model_path = self.config.get("save_path", "models")
+        save_model_path = self.all_args.get("save_folder", "models")
         os.makedirs(save_model_path, exist_ok=True)
 
         # optimizer
@@ -107,7 +110,7 @@ class OptimizerNode(Node):
 
             # optimize
             self.setstate("step")
-            metric = algorithm.learn(batch, shared_tick.value)
+            metric = algorithm.local_update(batch.get_batch(), shared_tick.value)
             if metric is not None:
                 # update to data logging
                 if self.node_rank == 0:
@@ -135,6 +138,6 @@ class OptimizerNode(Node):
                     last_save_model_time = current_time
 
                     save_filename = os.path.join(save_model_path, str(current_model_version))
-                    torch.save(algorithm.state_dict(), save_filename)
+                    torch.save(algorithm.networks.state_dict(), save_filename)
                     # log model
                     self.log_metric({"save_model": True, "save_filename": save_filename})

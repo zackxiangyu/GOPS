@@ -64,9 +64,9 @@ class EnvNode(Node):
 
     @staticmethod
     def create_env(ns_config: dict):
-        env_config = ns_config["env"]
+        config = ns_config["all_args"]
         # env_class = get_class_from_str(env_config.get("import", ""), env_config["name"])
-        env = create_env(**env_config.get("params", {}))
+        env = create_env(**config)
         return env
 
     def run(self):

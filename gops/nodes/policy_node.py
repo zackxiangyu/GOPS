@@ -1,17 +1,67 @@
+import numpy as np
 import torch
+from typing import Optional, Union
+from gops.algorithm.base import ApprBase
 from gops.nodes.node import Node
 from gops.nodes.optimizer_node import OptimizerNode
 from gops.utils.shared_objects import numpy_to_torch_dtype_dict
+from gops.utils.explore_noise import GaussNoise, EpsilonGreedy
 
 
 class PolicyNode(Node):
+
+    def step(
+            self,
+            networks: ApprBase,
+            batch_obs: torch.Tensor,
+            action_type: str,
+            noise_processor: Optional[Union[GaussNoise, EpsilonGreedy]] = None,
+    ) -> np.ndarray:
+        """
+        Performs a single step in sampling process.
+
+        Args:
+            networks (ApprBase): The neural networks used for prediction.
+            batch_obs (torch.Tensor): The batch of observations.
+            action_type (str): The type of action to be taken.
+            noise_processor (Optional[Union[GaussNoise, EpsilonGreedy]]): An optional noise processor to introduce
+                randomness to the action.
+
+        Returns:
+            np.ndarray: The clipped action array.
+        """
+        # Processing the frame stack of the input.
+        if len(batch_obs.shape) == 3:
+            # N FS C --> N FS*C
+            batch_obs = batch_obs.view(batch_obs.shape[0], -1)
+        elif len(batch_obs.shape) == 5:
+            # reshape N FS C H W --> N C*FS H W
+            batch_obs = batch_obs.view(batch_obs.shape[0], -1, batch_obs.shape[-2], batch_obs.shape[-1])
+        with torch.no_grad():
+            logits = networks.policy(batch_obs)
+            action_distribution = networks.create_action_distributions(logits)
+            action, logp = action_distribution.sample()
+        action = action.cpu().numpy()
+        if noise_processor is not None:
+            action = noise_processor.sample_batch(action)
+        action = np.array(action)
+        if action_type == "continu":
+            action_clip = action.clip(
+                self.all_args["action_low_limit"],
+                self.all_args["action_high_limit"],
+            )
+        else:
+            action_clip = action
+
+        return action_clip
+
     def run(self):
         # allocate device
         devices = self.config["devices"]
         device = torch.device(devices[self.node_rank % len(devices)])
         # load policy
         policy = OptimizerNode.create_algo(self.ns_config).to(device)
-        policy.eval()
+        policy.networks.eval()
         if "load_policy" in self.config:
             policy_state_dict = torch.load(self.config["load_policy"], map_location=device)
             policy_state_dict = {k.replace("module.", ""): v
@@ -50,7 +100,7 @@ class PolicyNode(Node):
             self.log("Global step ticking disabled.")
 
         # policy update
-        local_policy_state_dict = policy.policy_state_dict()
+        local_policy_state_dict = policy.networks.policy.state_dict()
         shared_policy_state_dict = None
 
         if node_optimizer is not None:
@@ -58,6 +108,19 @@ class PolicyNode(Node):
             shared_policy_state_dict.initialize("subscriber", device)
         else:
             self.log("OptimizerNode not found, unable to update policy.")
+
+        # Add noise to action for better exploration
+        noise_params = self.all_args["noise_params"]
+        action_type = self.all_args["action_type"]
+        if noise_params is not None:
+            if action_type == "continu":
+                noise_processor = GaussNoise(**noise_params)
+            elif action_type == "discret":
+                noise_processor = EpsilonGreedy(**noise_params)
+            else:
+                raise ValueError(f"Invalid action type: {action_type}.")
+        else:
+            noise_processor = None
 
         # event loop
         while True:
@@ -95,13 +158,14 @@ class PolicyNode(Node):
                 metric_shared["tick"].value = ticks + batch_size  # update
                 metric_shared["lock"].release()
             # step
-            with torch.no_grad():
-                act = policy(batch, ticks)
+            # with torch.no_grad():
+            #     act = policy(batch, ticks)
+            act = self.step(policy.networks, batch, action_type, noise_processor)
 
             # copy back
             self.setstate("copy_act")
-            if not is_cpu:
-                act = act.cpu()
+            # if not is_cpu:
+            #     act = act.cpu()
             for idx, env_name in enumerate(env_queue):
                 act_shared[env_name][...] = act[idx]
                 self.send(env_name, "")

@@ -52,6 +52,12 @@ class EpsilonGreedy:
         else:
             return np.random.randint(self.action_num)
 
+    def sample_batch(self, action_batch):
+        if np.random.random() > self.epsilon:
+            return action_batch
+        else:
+            return np.random.randint(self.action_num, size=action_batch.shape)
+
 
 class GaussNoise:
     def __init__(self, mean, std):
@@ -60,3 +66,6 @@ class GaussNoise:
 
     def sample(self, action):
         return action + np.random.normal(self.mean, self.std)
+
+    def sample_batch(self, action_batch):
+        return action_batch + np.random.normal(self.mean, self.std, size=action_batch.shape)
