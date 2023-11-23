@@ -50,7 +50,7 @@ class EpsilonGreedy:
         if np.random.random() > self.epsilon:
             return action
         else:
-            return np.random.randint(self.action_num)
+            return np.array(np.random.randint(self.action_num))
 
     def sample_batch(self, action_batch):
         if np.random.random() > self.epsilon:
