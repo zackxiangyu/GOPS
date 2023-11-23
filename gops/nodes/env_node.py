@@ -1,6 +1,5 @@
 import numpy as np
 from gops.create_pkg.create_env import create_env
-from gops.utils.common_utils import get_class_from_str
 from gops.nodes.node import Node
 from gops.utils.shared_objects import SharedArray
 from gops.utils.shared_objects import BatchShared

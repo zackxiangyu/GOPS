@@ -11,7 +11,7 @@ class SamplerNode(Node):
         assert Node.node_count("OptimizerNode", ns_config) == num, \
                "Number of sampler nodes must equal to number of optimizer nodes."
 
-        tot_batch_size = ns_config["algorithm"]["params"]["replay_batch_size"]
+        tot_batch_size = ns_config["all_args"]["replay_batch_size"]
         num_samplers = Node.node_count("SamplerNode", ns_config)
 
         assert (tot_batch_size % num_samplers) == 0, \

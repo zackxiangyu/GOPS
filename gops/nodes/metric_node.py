@@ -20,12 +20,11 @@ class MetricNode(Node):
 
     def get_run_label(self):
         env_config = self.ns_config.get("env", {})
-        algo_config = self.ns_config.get("algorithm", {})
 
-        env_name = env_config.get("name", "")
+        env_name = self.all_args.get("env_id", "")
         env_params_str = ", ".join(k + "=" + v.__repr__() for k, v in env_config.get("params", {}).items())
 
-        algo_name = algo_config.get("name", "UnknownAlgorithm")
+        algo_name = self.all_args.get("algorithm", "UnknownAlgorithm")
 
         return {
             "project": "{} {}".format(env_name, env_params_str),

@@ -26,3 +26,8 @@ dependencies:
     - openpyxl
     - intel-openmp
     - pytest
+    - faster_fifo
+    - pyyaml
+    - setproctitle
+    - patchelf
+    - wandb

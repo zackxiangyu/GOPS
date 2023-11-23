@@ -61,12 +61,10 @@ class PolicyNode(Node):
         device = torch.device(devices[self.node_rank % len(devices)])
         # load policy
         policy = OptimizerNode.create_algo(self.ns_config).to(device)
-        policy.networks.eval()
-        if "load_policy" in self.config:
-            policy_state_dict = torch.load(self.config["load_policy"], map_location=device)
-            policy_state_dict = {k.replace("module.", ""): v
-                                 for k, v in policy_state_dict.items()}
-            policy.load_state_dict(policy_state_dict, strict=False)
+        policy.eval()
+        if self.all_args["ini_network_dir"] is not None:
+            policy_state_dict = torch.load(self.all_args["ini_network_dir"], map_location=device)
+            policy.load_state_dict(policy_state_dict)
 
         policy_version = -1
         # batch

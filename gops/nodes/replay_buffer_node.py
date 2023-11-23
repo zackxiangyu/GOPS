@@ -13,7 +13,7 @@ class ReplayBufferNode(Node):
 
         assert num == 1, "Only one ReplayBufferNode is supported."
         # size
-        total_size = ns_config["algorithm"]["params"]["replay_buffer_size"]
+        total_size = ns_config["all_args"]["buffer_max_size"]
         num_buffers = Node.node_count("EnvNode", ns_config)
         single_size = total_size // num_buffers
         # create buffers

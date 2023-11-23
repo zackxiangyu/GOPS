@@ -120,19 +120,25 @@ def create_approx_contrainer(algorithm: str, **kwargs,) -> object:
 
 
 def create_alg_new(**kwargs):
-    alg_name = kwargs["algorithm"]
-    alg_file_name = alg_name.lower()
-    try:
-        module = importlib.import_module("gops.algorithm." + alg_file_name)
-    except NotImplementedError:
-        raise NotImplementedError("This algorithm does not exist")
+    algorithm = kwargs["algorithm"]
+    spec_ = registry.get(algorithm)
 
-    # Serial
-    if hasattr(module, alg_name):
-        alg_cls = getattr(module, alg_name)
-        alg = alg_cls(**kwargs)
+    if spec_ is None:
+        raise KeyError(f"No registered algorithm with id: {algorithm}")
+
+    _kwargs = spec_.kwargs.copy()
+    _kwargs.update(kwargs)
+
+    if callable(spec_.entry_point):
+        algorithm_creator = spec_.entry_point
     else:
-        raise NotImplementedError("This algorithm is not properly defined")
+        raise RuntimeError(f"{spec_.algorithm} registered but entry_point is not specified")
 
-    print("Create algorithm successfully!")
-    return alg
+    if "seed" not in _kwargs or _kwargs["seed"] is None:
+        _kwargs["seed"] = 0
+    if "cnn_shared" not in _kwargs or _kwargs["cnn_shared"] is None:
+        _kwargs["cnn_shared"] = False
+
+    algo = algorithm_creator(**_kwargs)
+
+    return algo

@@ -234,10 +234,14 @@ class SharedStateDict:
             torch.cuda.synchronize(self.device)
 
     def receive(self, state_dict: Dict) -> None:
-        """Receives the data from another shared state_dict to this one.
+        """
+        Receive and update the state dictionary.
 
         Args:
-            state_dict (dict): The source shared state_dict that contains the data.
+            state_dict (Dict): The updated state dictionary.
+
+        Returns:
+            None
         """
         assert self.type == "subscriber", "SharedStateDict: Must initialize as subscriber"
 

@@ -7,7 +7,6 @@ import torch
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
 from gops.create_pkg.create_alg import create_alg_new
-from gops.utils.common_utils import get_class_from_str
 from gops.utils.shared_objects import SharedStateDict
 from gops.utils.shared_objects import BatchCuda
 from gops.nodes.node import Node
@@ -71,7 +70,10 @@ class OptimizerNode(Node):
 
         # model
         algorithm = self.create_algo(self.ns_config, device, use_ddp)
-        algorithm.networks.train()
+        # initialize center network
+        if self.all_args["ini_network_dir"] is not None:
+            algorithm.load_state_dict(torch.load(self.all_args["ini_network_dir"]))
+        algorithm.train()
 
         # ticks
         metric_shared = self.global_objects.get(self.find("MetricNode"), {})
@@ -134,10 +136,10 @@ class OptimizerNode(Node):
                     self.objects["update_lock"].release()
 
                 # save model
-                if (current_time - last_save_model_time) >= self.config.get("save_interval", 3600):
+                if (current_time - last_save_model_time) >= self.all_args.get("apprfunc_save_interval", 3600):
                     last_save_model_time = current_time
 
                     save_filename = os.path.join(save_model_path, str(current_model_version))
-                    torch.save(algorithm.networks.state_dict(), save_filename)
+                    torch.save(algorithm.state_dict(), save_filename)
                     # log model
                     self.log_metric({"save_model": True, "save_filename": save_filename})
