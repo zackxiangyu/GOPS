@@ -9,7 +9,8 @@
 #  Description: example for dsac + veh3dof + mlp + offserial
 #  Update Date: 2021-03-05, Gu Ziqing: create example
 
-
+import sys
+sys.path.append('../../')
 import argparse
 import os
 import yaml
@@ -19,7 +20,8 @@ from gops.utils.init_args import init_args
 from gops.utils.plot_evaluation import plot_all
 from gops.utils.tensorboard_setup import start_tensorboard, save_tb_to_csv
 
-os.environ["OMP_NUM_THREADS"] = "4"
+# os.environ["OMP_NUM_THREADS"] = "4"
+# os.environ['WANDB_API_KEY'] = ""
 
 if __name__ == "__main__":
     # Parameters Setup
@@ -144,9 +146,10 @@ if __name__ == "__main__":
     parser.add_argument("--apprfunc_save_interval", type=int, default=2000)
     # Save key info every N updates
     parser.add_argument("--log_save_interval", type=int, default=200)
+    parser.add_argument("--wandb_mode", type=str, default="offline", help="online or offline")
 
     # 8. Parallel nodes config path
-    parser.add_argument("config_path", type=str, default='example.yaml', help="Path to config file")
+    parser.add_argument("--config_path", type=str, default='./example.yaml', help="Path to config file")
 
     ################################################
     # Get parameter dictionary
@@ -154,7 +157,7 @@ if __name__ == "__main__":
     env = create_env(**args)
     args = init_args(env, **args)
 
-    start_tensorboard(args["save_folder"])
+    # start_tensorboard(args["save_folder"])
 
     ################################################
 

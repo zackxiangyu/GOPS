@@ -84,7 +84,7 @@ class EnvNode(Node):
 
         # create and reset env
         env = self.create_env(self.ns_config)
-        obs = env.reset()
+        obs, _ = env.reset()
         tot_reward = 0
         while True:
             # copy obs to shared mem
@@ -119,7 +119,7 @@ class EnvNode(Node):
             obs = obs_next
             if done:
                 self.setstate("reset")
-                obs = env.reset()
+                obs, _ = env.reset()
 
                 self.log_metric({"{}@episode_reward".format(self.node_ns): tot_reward})
                 tot_reward = 0

@@ -52,6 +52,7 @@ class PolicyNode(Node):
             )
         else:
             action_clip = action
+        action_clip = torch.from_numpy(action_clip)
 
         return action_clip
 
@@ -60,7 +61,7 @@ class PolicyNode(Node):
         devices = self.config["devices"]
         device = torch.device(devices[self.node_rank % len(devices)])
         # load policy
-        policy = OptimizerNode.create_algo(self.ns_config).to(device)
+        policy = OptimizerNode.create_algo(self.ns_config, device)
         policy.eval()
         if self.all_args["ini_network_dir"] is not None:
             policy_state_dict = torch.load(self.all_args["ini_network_dir"], map_location=device)

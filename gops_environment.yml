@@ -31,3 +31,4 @@ dependencies:
     - setproctitle
     - patchelf
     - wandb
+    - opencv-python

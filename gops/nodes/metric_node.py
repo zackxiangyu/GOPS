@@ -51,7 +51,7 @@ class MetricNode(Node):
         utd_log_interval = self.config.get("utd_log_interval", 1.0)
 
         # initialize
-        wandb.init(**self.get_run_label(), config={
+        wandb.init(**self.get_run_label(), mode=self.all_args["wandb_mode"], config={
             "config": self.ns_config,
             "objects": self.object_to_string_dict(self.global_objects)
         })

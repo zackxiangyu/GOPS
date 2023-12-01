@@ -166,7 +166,7 @@ class BatchCuda:
         batch = dict()
         batch["obs"] = self.data["obs"][:, -2]
         batch["obs2"] = self.data["obs"][:, -1]
-        batch["act"] = self.data["act"][: -2]
+        batch["act"] = self.data["act"][:, -2]
         batch["rew"] = self.data["rew"][:, -2]
         batch["done"] = self.data["done"][:, -2]
         return batch
