@@ -35,7 +35,7 @@ class Node:
         self.metric_node = self.find("MetricNode", 0)
 
         # Proc title for visualization
-        setproctitle.setproctitle("-OneRL- {}".format(self.node_name))
+        setproctitle.setproctitle("-GOPS- {}".format(self.node_name))
         # CUDNN Benchmark
         if torch.backends.cudnn.is_available():
             torch.backends.cudnn.benchmark = True

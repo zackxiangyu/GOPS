@@ -164,11 +164,11 @@ class BatchCuda:
 
     def get_batch(self) -> Dict:
         batch = dict()
-        batch["obs"] = self.data["obs"][:, -2]
-        batch["obs2"] = self.data["obs"][:, -1]
-        batch["act"] = self.data["act"][:, -2]
-        batch["rew"] = self.data["rew"][:, -2]
-        batch["done"] = self.data["done"][:, -2]
+        batch["obs"] = self.data["obs"][:, -2].type(torch.float32)
+        batch["obs2"] = self.data["obs"][:, -1].type(torch.float32)
+        batch["act"] = self.data["act"][:, -2].type(torch.float32)
+        batch["rew"] = self.data["rew"][:, -2].type(torch.float32)
+        batch["done"] = self.data["done"][:, -2].type(torch.float32)
         return batch
 
 

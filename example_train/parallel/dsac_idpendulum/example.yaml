@@ -6,7 +6,7 @@ $global:
   # Environment
   env:
     params:
-      id: pyth_veh3dofconti
+      id: pyth_idpendulum
     frame_stack: 1
 
   # Algorithm
@@ -21,20 +21,21 @@ $train:
   # Training node configuration
   nodes:
     EnvNode:
-      num: 8
+      num: 4
     PolicyNode:
-      num: 1
+      num: 2
       devices: [cuda:0]
-      batch_size: 8
+      batch_size: 2
     SchedulerNode:
       num: 1
     ReplayBufferNode:
       num: 1
     SamplerNode:
       num: 1
+      protect_range: 1000
     OptimizerNode:
       num: 1
-      update_interval: 1.0
+      update_interval: 0.5
       devices: [cuda:0]
 
 $test:

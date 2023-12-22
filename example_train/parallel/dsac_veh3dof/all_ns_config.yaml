@@ -1,0 +1,422 @@
+$global:
+  algorithm:
+    params: null
+  all_args:
+    TD_bound: 10
+    action_dim: 2
+    action_high_limit: &id005 !!python/object/apply:numpy.core.multiarray._reconstruct
+      args:
+      - &id001 !!python/name:numpy.ndarray ''
+      - !!python/tuple
+        - 0
+      - !!binary |
+        Yg==
+      state: !!python/tuple
+      - 1
+      - !!python/tuple
+        - 2
+      - &id002 !!python/object/apply:numpy.dtype
+        args:
+        - f4
+        - false
+        - true
+        state: !!python/tuple
+        - 3
+        - <
+        - null
+        - null
+        - null
+        - -1
+        - -1
+        - 0
+      - false
+      - !!binary |
+        AACAPwAAgD8=
+    action_low_limit: &id006 !!python/object/apply:numpy.core.multiarray._reconstruct
+      args:
+      - *id001
+      - !!python/tuple
+        - 0
+      - !!binary |
+        Yg==
+      state: !!python/tuple
+      - 1
+      - !!python/tuple
+        - 2
+      - *id002
+      - false
+      - !!binary |
+        AACAvwAAgL8=
+    action_type: continu
+    additional_info:
+      path_num:
+        dtype: &id004 !!python/name:numpy.uint8 ''
+        shape: !!python/tuple []
+      ref:
+        dtype: &id003 !!python/name:numpy.float32 ''
+        shape: &id007 !!python/tuple
+        - 4
+      ref_points:
+        dtype: *id003
+        shape: &id008 !!python/tuple
+        - 21
+        - 4
+      ref_time:
+        dtype: *id003
+        shape: !!python/tuple []
+      state:
+        dtype: *id003
+        shape: &id009 !!python/tuple
+        - 6
+      u_num:
+        dtype: *id004
+        shape: !!python/tuple []
+    algorithm: DSAC
+    alpha_learning_rate: 0.0001
+    apprfunc_save_interval: 2000
+    auto_alpha: true
+    batch_size_per_sampler: 32
+    bound: true
+    buffer_max_size: 100000
+    buffer_name: replay_buffer
+    buffer_warm_size: 1000
+    cnn_shared: false
+    config_path: /home/dodo/zack/GOPS/example_train/parallel/example.yaml
+    delay_update: 2
+    enable_cuda: true
+    env_id: pyth_veh3dofconti
+    eval_interval: 200
+    eval_save: false
+    evaluator_name: evaluator
+    gamma: 0.99
+    ini_network_dir: null
+    is_adversary: false
+    is_render: false
+    log_save_interval: 200
+    max_iteration: 40000
+    noise_params: null
+    num_eval_episode: 10
+    obsv_dim: 86
+    policy_act_distribution: TanhGaussDistribution
+    policy_func_name: StochaPolicy
+    policy_func_type: MLP
+    policy_hidden_activation: gelu
+    policy_hidden_sizes: &id010
+    - 512
+    - 256
+    - 256
+    policy_learning_rate: 0.0003
+    policy_max_log_std: 1
+    policy_min_log_std: -20
+    pre_horizon: 20
+    replay_batch_size: 256
+    reward_scale: 1
+    sample_batch_size: 32
+    sampler_name: off_sampler
+    sampler_sync_interval: 1
+    save_folder: /home/dodo/zack/GOPS/example_train/parallel/../../results/pyth_veh3dofconti/DSAC_231129-192822
+    seed: 3
+    tau: 0.05
+    trainer: off_serial_trainer
+    use_gpu: true
+    value_func_name: ActionValueDistri
+    value_func_type: MLP
+    value_hidden_activation: gelu
+    value_hidden_sizes: &id011
+    - 256
+    - 256
+    value_learning_rate: 0.0003
+    value_max_log_std: 4
+    value_min_log_std: -0.1
+    value_output_activation: linear
+  env:
+    frame_stack: 1
+    params:
+      id: pyth_veh3dofconti
+  nodes:
+    MetricNode:
+      num: 1
+  num:
+    MetricNode: 1
+$test:
+  algorithm:
+    params: null
+  all_args:
+    TD_bound: 10
+    action_dim: 2
+    action_high_limit: *id005
+    action_low_limit: *id006
+    action_type: continu
+    additional_info:
+      path_num:
+        dtype: *id004
+        shape: !!python/tuple []
+      ref:
+        dtype: *id003
+        shape: *id007
+      ref_points:
+        dtype: *id003
+        shape: *id008
+      ref_time:
+        dtype: *id003
+        shape: !!python/tuple []
+      state:
+        dtype: *id003
+        shape: *id009
+      u_num:
+        dtype: *id004
+        shape: !!python/tuple []
+    algorithm: DSAC
+    alpha_learning_rate: 0.0001
+    apprfunc_save_interval: 2000
+    auto_alpha: true
+    batch_size_per_sampler: 32
+    bound: true
+    buffer_max_size: 100000
+    buffer_name: replay_buffer
+    buffer_warm_size: 1000
+    cnn_shared: false
+    config_path: /home/dodo/zack/GOPS/example_train/parallel/example.yaml
+    delay_update: 2
+    enable_cuda: true
+    env_id: pyth_veh3dofconti
+    eval_interval: 200
+    eval_save: false
+    evaluator_name: evaluator
+    gamma: 0.99
+    ini_network_dir: null
+    is_adversary: false
+    is_render: false
+    log_save_interval: 200
+    max_iteration: 40000
+    noise_params: null
+    num_eval_episode: 10
+    obsv_dim: 86
+    policy_act_distribution: TanhGaussDistribution
+    policy_func_name: StochaPolicy
+    policy_func_type: MLP
+    policy_hidden_activation: gelu
+    policy_hidden_sizes: *id010
+    policy_learning_rate: 0.0003
+    policy_max_log_std: 1
+    policy_min_log_std: -20
+    pre_horizon: 20
+    replay_batch_size: 256
+    reward_scale: 1
+    sample_batch_size: 32
+    sampler_name: off_sampler
+    sampler_sync_interval: 1
+    save_folder: /home/dodo/zack/GOPS/example_train/parallel/../../results/pyth_veh3dofconti/DSAC_231129-192822
+    seed: 3
+    tau: 0.05
+    trainer: off_serial_trainer
+    use_gpu: true
+    value_func_name: ActionValueDistri
+    value_func_type: MLP
+    value_hidden_activation: gelu
+    value_hidden_sizes: *id011
+    value_learning_rate: 0.0003
+    value_max_log_std: 4
+    value_min_log_std: -0.1
+    value_output_activation: linear
+  env:
+    act_dtype: *id002
+    act_max: !!python/object/apply:numpy.core.multiarray._reconstruct
+      args:
+      - *id001
+      - !!python/tuple
+        - 0
+      - !!binary |
+        Yg==
+      state: !!python/tuple
+      - 1
+      - !!python/tuple
+        - 2
+      - *id002
+      - false
+      - !!binary |
+        AACAPwAAgD8=
+    act_shape: &id012 !!python/tuple
+    - 2
+    batch:
+      act: !!python/tuple
+      - *id012
+      - *id002
+      done: !!python/tuple
+      - !!python/tuple []
+      - *id003
+      obs: !!python/tuple
+      - &id013 !!python/tuple
+        - 86
+      - *id002
+      rew: !!python/tuple
+      - !!python/tuple []
+      - *id003
+    frame_stack: 1
+    obs_dtype: *id002
+    obs_shape: *id013
+    params:
+      id: pyth_veh3dofconti
+  nodes:
+    EnvNode:
+      num: 1
+    PolicyNode:
+      batch_size: 1
+      devices:
+      - cpu
+      do_tick: false
+      num: 1
+      optimizer_namespace: $train
+    SchedulerNode:
+      num: 1
+  num:
+    EnvNode: 1
+    MetricNode: 1
+    PolicyNode: 1
+    SchedulerNode: 1
+$train:
+  algorithm:
+    params: null
+  all_args:
+    TD_bound: 10
+    action_dim: 2
+    action_high_limit: *id005
+    action_low_limit: *id006
+    action_type: continu
+    additional_info:
+      path_num:
+        dtype: *id004
+        shape: !!python/tuple []
+      ref:
+        dtype: *id003
+        shape: *id007
+      ref_points:
+        dtype: *id003
+        shape: *id008
+      ref_time:
+        dtype: *id003
+        shape: !!python/tuple []
+      state:
+        dtype: *id003
+        shape: *id009
+      u_num:
+        dtype: *id004
+        shape: !!python/tuple []
+    algorithm: DSAC
+    alpha_learning_rate: 0.0001
+    apprfunc_save_interval: 2000
+    auto_alpha: true
+    batch_size_per_sampler: 32
+    bound: true
+    buffer_max_size: 100000
+    buffer_name: replay_buffer
+    buffer_warm_size: 1000
+    cnn_shared: false
+    config_path: /home/dodo/zack/GOPS/example_train/parallel/example.yaml
+    delay_update: 2
+    enable_cuda: true
+    env_id: pyth_veh3dofconti
+    eval_interval: 200
+    eval_save: false
+    evaluator_name: evaluator
+    gamma: 0.99
+    ini_network_dir: null
+    is_adversary: false
+    is_render: false
+    log_save_interval: 200
+    max_iteration: 40000
+    noise_params: null
+    num_eval_episode: 10
+    obsv_dim: 86
+    policy_act_distribution: TanhGaussDistribution
+    policy_func_name: StochaPolicy
+    policy_func_type: MLP
+    policy_hidden_activation: gelu
+    policy_hidden_sizes: *id010
+    policy_learning_rate: 0.0003
+    policy_max_log_std: 1
+    policy_min_log_std: -20
+    pre_horizon: 20
+    replay_batch_size: 256
+    reward_scale: 1
+    sample_batch_size: 32
+    sampler_name: off_sampler
+    sampler_sync_interval: 1
+    save_folder: /home/dodo/zack/GOPS/example_train/parallel/../../results/pyth_veh3dofconti/DSAC_231129-192822
+    seed: 3
+    tau: 0.05
+    trainer: off_serial_trainer
+    use_gpu: true
+    value_func_name: ActionValueDistri
+    value_func_type: MLP
+    value_hidden_activation: gelu
+    value_hidden_sizes: *id011
+    value_learning_rate: 0.0003
+    value_max_log_std: 4
+    value_min_log_std: -0.1
+    value_output_activation: linear
+  env:
+    act_dtype: *id002
+    act_max: !!python/object/apply:numpy.core.multiarray._reconstruct
+      args:
+      - *id001
+      - !!python/tuple
+        - 0
+      - !!binary |
+        Yg==
+      state: !!python/tuple
+      - 1
+      - !!python/tuple
+        - 2
+      - *id002
+      - false
+      - !!binary |
+        AACAPwAAgD8=
+    act_shape: &id014 !!python/tuple
+    - 2
+    batch:
+      act: !!python/tuple
+      - *id014
+      - *id002
+      done: !!python/tuple
+      - !!python/tuple []
+      - *id003
+      obs: !!python/tuple
+      - &id015 !!python/tuple
+        - 86
+      - *id002
+      rew: !!python/tuple
+      - !!python/tuple []
+      - *id003
+    frame_stack: 1
+    obs_dtype: *id002
+    obs_shape: *id015
+    params:
+      id: pyth_veh3dofconti
+  nodes:
+    EnvNode:
+      num: 8
+    OptimizerNode:
+      devices:
+      - cuda:0
+      num: 1
+      update_interval: 1.0
+    PolicyNode:
+      batch_size: 8
+      devices:
+      - cuda:0
+      num: 1
+    ReplayBufferNode:
+      num: 1
+    SamplerNode:
+      num: 1
+    SchedulerNode:
+      num: 1
+  num:
+    EnvNode: 8
+    MetricNode: 1
+    OptimizerNode: 1
+    PolicyNode: 1
+    ReplayBufferNode: 1
+    SamplerNode: 1
+    SchedulerNode: 1

@@ -31,6 +31,7 @@ class PolicyNode(Node):
             np.ndarray: The clipped action array.
         """
         # Processing the frame stack of the input.
+        batch_obs = batch_obs.type(torch.float32)
         if len(batch_obs.shape) == 3:
             # N FS C --> N FS*C
             batch_obs = batch_obs.view(batch_obs.shape[0], -1)

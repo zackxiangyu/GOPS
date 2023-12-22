@@ -15,7 +15,9 @@ from gops.nodes.node import Node
 class OptimizerNode(Node):
     @staticmethod
     def create_algo(ns_config: dict, net_device: torch.device = None, use_ddp: bool = False):
-        config = ns_config["all_args"]
+        config = ns_config["all_args"].copy()
+        if net_device is not None and net_device.type == "cuda":
+            config["use_gpu"] = True
         # create network
         # network = {k: get_class_from_str(v.get("import", ""), v["name"])(**v.get("params", {}))
         #            for k, v in algo_config.get("network", {}).items()}
@@ -112,7 +114,7 @@ class OptimizerNode(Node):
 
             # optimize
             self.setstate("step")
-            metric = algorithm.local_update(batch.get_batch(), shared_tick.value)
+            metric = algorithm.local_update(batch.get_batch(), current_model_version)
             if metric is not None:
                 # update to data logging
                 if self.node_rank == 0:
