@@ -27,7 +27,7 @@ class MetricNode(Node):
         algo_name = self.all_args.get("algorithm", "UnknownAlgorithm")
 
         return {
-            "project": "{} {}".format(env_name, env_params_str),
+            "project": "[GOPS] {} {}".format(env_name, env_params_str),
             "name": "{} {}".format(algo_name, time.strftime("%H:%M %m-%d %Y"))
         }
 

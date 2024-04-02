@@ -93,6 +93,14 @@ def launch_nodes(yaml_config: dict):
                 process = mp.Process(**proc_args[1])
                 process.start()
                 proc_args[0] = process
+        # Terminate all the processes according to the training iteration.        
+        update_version = global_objects["$train@OptimizerNode.0"]["update_version"].value
+        if update_version >= yaml_config["$global"]["all_args"]["max_iteration"]:
+            print("Terminating all processes...")
+            for process, _ in processes:
+                process.terminate()
+                process.join()
+            break
 
         time.sleep(1)
 

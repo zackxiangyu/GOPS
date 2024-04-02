@@ -119,6 +119,7 @@ class OptimizerNode(Node):
                 # update to data logging
                 if self.node_rank == 0:
                     metric["update"] = 1
+                    metric["current_model_version"] = current_model_version + 1
 
                 self.log_metric(metric)
 

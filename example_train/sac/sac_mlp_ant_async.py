@@ -6,8 +6,8 @@
 #  Lab Leader: Prof. Shengbo Eben Li
 #  Email: lisb04@gmail.com
 #
-#  Description: example for sac + humanoidconti + mlp + off_serial
-#  Update Date: 2021-06-11, Yang Yujie: create example
+#  Description: example for sac + ant + mlp + off_serial
+#  Update Date: 2024-03-28, zack: create example
 
 
 import argparse
@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     ################################################
     # Key Parameters for users
-    parser.add_argument("--env_id", type=str, default="gym_humanoid", help="id of environment")
+    parser.add_argument("--env_id", type=str, default="gym_ant", help="id of environment")
     parser.add_argument("--algorithm", type=str, default="SAC", help="RL algorithm")
     parser.add_argument("--enable_cuda", default=True, help="Disable CUDA")
     parser.add_argument("--seed", default=12345, help="Global seed")
@@ -91,7 +91,6 @@ if __name__ == "__main__":
     parser.add_argument("--tau", type=float, default=0.005)
     parser.add_argument("--auto_alpha", type=bool, default=False)
     parser.add_argument("--alpha", type=float, default=0.2)
-    parser.add_argument("--delay_update", type=int, default=2)
     parser.add_argument("--TD_bound", type=float, default=10)
     parser.add_argument("--bound", default=True)
 

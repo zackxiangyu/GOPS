@@ -6,23 +6,23 @@
 #  Lab Leader: Prof. Shengbo Eben Li
 #  Email: lisb04@gmail.com
 #
-#  Description: example for sac + humanoidconti + mlp + off_serial
-#  Update Date: 2021-06-11, Yang Yujie: create example
+#  Description: example for sac + ant + mlp + off_async
+#  Update Date: 2024-03-28, zack: create example
 
 
 import argparse
+import json
+import yaml
+import copy
+import multiprocessing
 import os
-import numpy as np
-
-from gops.create_pkg.create_alg import create_alg
-from gops.create_pkg.create_buffer import create_buffer
 from gops.create_pkg.create_env import create_env
-from gops.create_pkg.create_evaluator import create_evaluator
-from gops.create_pkg.create_sampler import create_sampler
-from gops.create_pkg.create_trainer import create_trainer
+from gops.nodes.launcher import launch_nodes
 from gops.utils.init_args import init_args
-from gops.utils.plot_evaluation import plot_all
-from gops.utils.tensorboard_setup import start_tensorboard, save_tb_to_csv
+from gops.utils.tensorboard_setup import save_tb_to_csv
+from gops.utils.common_utils import change_type
+
+os.environ['WANDB_API_KEY'] = "8d3bf9907d76a72a3cce256b3903755c2d06dd51"
 
 
 if __name__ == "__main__":
@@ -31,9 +31,9 @@ if __name__ == "__main__":
 
     ################################################
     # Key Parameters for users
-    parser.add_argument("--env_id", type=str, default="gym_humanoid", help="id of environment")
+    parser.add_argument("--env_id", type=str, default="gym_ant", help="id of environment")
     parser.add_argument("--algorithm", type=str, default="SAC", help="RL algorithm")
-    parser.add_argument("--enable_cuda", default=True, help="Disable CUDA")
+    parser.add_argument("--enable_cuda", default=False, help="Disable CUDA")
     parser.add_argument("--seed", default=12345, help="Global seed")
     ################################################
     # 1. Parameters for environment
@@ -91,7 +91,6 @@ if __name__ == "__main__":
     parser.add_argument("--tau", type=float, default=0.005)
     parser.add_argument("--auto_alpha", type=bool, default=False)
     parser.add_argument("--alpha", type=float, default=0.2)
-    parser.add_argument("--delay_update", type=int, default=2)
     parser.add_argument("--TD_bound", type=float, default=10)
     parser.add_argument("--bound", default=True)
 
@@ -104,7 +103,7 @@ if __name__ == "__main__":
         help="Options: on_serial_trainer, on_sync_trainer, off_serial_trainer, off_async_trainer",
     )
     # Maximum iteration number
-    parser.add_argument("--max_iteration", type=int, default=1500000)
+    parser.add_argument("--max_iteration", type=int, default=1000000)
     parser.add_argument(
         "--ini_network_dir",
         type=str,
@@ -122,7 +121,7 @@ if __name__ == "__main__":
     # Size of collected samples before training
     parser.add_argument("--buffer_warm_size", type=int, default=10000)
     # Max size of reply buffer
-    parser.add_argument("--buffer_max_size", type=int, default=2*500000)
+    parser.add_argument("--buffer_max_size", type=int, default=1000000)
     # Batch size of replay samples from buffer
     parser.add_argument("--replay_batch_size", type=int, default=256)
     # Period of sampling
@@ -150,6 +149,11 @@ if __name__ == "__main__":
     parser.add_argument("--apprfunc_save_interval", type=int, default=50000)
     # Save key info every N updates
     parser.add_argument("--log_save_interval", type=int, default=10000)
+    parser.add_argument("--wandb_mode", type=str, default="online", help="online or offline")
+    
+    # 8. Parallel nodes config path
+    parser.add_argument("--config_path", type=str, default='/home/dodo/zack/GOPS/example_train/parallel/sac_ant/example.yaml', help="Path to config file")
+
 
     ################################################
     # Get parameter dictionary
@@ -157,25 +161,17 @@ if __name__ == "__main__":
     env = create_env(**args)
     args = init_args(env, **args)
 
-    start_tensorboard(args["save_folder"])
-    # Step 1: create algorithm and approximate function
-    alg = create_alg(**args)
-    # Step 2: create sampler in trainer
-    sampler = create_sampler(**args)
-    # Step 3: create buffer in trainer
-    buffer = create_buffer(**args)
-    # Step 4: create evaluator in trainer
-    evaluator = create_evaluator(**args)
-    # Step 5: create trainer
-    trainer = create_trainer(alg, sampler, buffer, evaluator, **args)
-
-    ################################################
-    # Start training ... ...
-    trainer.train()
-    print("Training is finished!")
+    with open(args["config_path"], "r") as f:
+        config = yaml.safe_load(f)
+        f.close()
+    for ns_name, ns_config in config.items():
+        ns_config["all_args"] = args
+    with open(args["save_folder"] + "/all_config.json", "w", encoding="utf-8") as f:
+        json.dump(change_type(copy.deepcopy(config)), f, ensure_ascii=False, indent=4)
+    launch_nodes(config)
 
     ################################################
     # Plot and save training figures
-    plot_all(args["save_folder"])
+    # plot_all(args["save_folder"])
     save_tb_to_csv(args["save_folder"])
     print("Plot & Save are finished!")

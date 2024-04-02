@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # Key Parameters for users
     parser.add_argument("--env_id", type=str, default="gym_carracingraw", help="id of environment")
     parser.add_argument("--algorithm", type=str, default="SAC", help="RL algorithm")
-    parser.add_argument("--enable_cuda", default=False, help="Disable CUDA")
+    parser.add_argument("--enable_cuda", default=True, help="Disable CUDA")
     parser.add_argument("--seed", default=12345, help="Enable CUDA")
     ################################################
     # 1. Parameters for environment

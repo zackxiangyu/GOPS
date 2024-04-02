@@ -1,0 +1,57 @@
+$global:
+  # Profiling
+  # profile: True
+  # profile_log_path: profile_log
+
+  # Environment
+  env:
+    params:
+      id: gym_carracingraw
+    frame_stack: 1
+
+  # Algorithm
+  algorithm:
+    params:  # Algorithm hyper-parameters
+
+  nodes:  # Metric recording node here
+    MetricNode:
+      num: 1
+
+$train:
+  # Training node configuration
+  nodes:
+    EnvNode:
+      num: 2
+    PolicyNode:
+      num: 1
+      devices: [cuda:0]
+      batch_size: 1
+    SchedulerNode:
+      num: 1
+    ReplayBufferNode:
+      num: 1
+    SamplerNode:
+      num: 1
+      # protect_range: 10
+    OptimizerNode:
+      num: 1
+      update_interval: 1.0
+      devices: [cuda:0]
+
+$test:
+  # Testing special configuration (override)
+  algorithm:
+    params:
+
+  # Testing node configuration
+  nodes:
+    EnvNode:
+      num: 1
+    PolicyNode:
+      num: 1
+      batch_size: 1
+      devices: [cpu]
+      do_tick: False  # Required, prevent test steps to be counted in total steps
+      optimizer_namespace: $train  # Required, specify where to load parameters
+    SchedulerNode:
+      num: 1
