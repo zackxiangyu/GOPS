@@ -24,7 +24,7 @@ $train:
       num: 2
     PolicyNode:
       num: 1
-      devices: [cuda:0]
+      devices: [cpu]
       batch_size: 1
     SchedulerNode:
       num: 1
@@ -35,7 +35,7 @@ $train:
       # protect_range: 10
     OptimizerNode:
       num: 1
-      update_interval: 1.0
+      update_interval: 0.5
       devices: [cuda:0]
 
 $test:

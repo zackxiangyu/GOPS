@@ -42,18 +42,29 @@ class PolicyNode(Node):
             logits = networks.policy(batch_obs)
             action_distribution = networks.create_action_distributions(logits)
             action, logp = action_distribution.sample()
-        action = action.cpu().numpy()
+        # action = action.cpu().numpy()
+        # if noise_processor is not None:
+        #     action = noise_processor.sample_batch(action)
+        # action = np.array(action)
+        # if action_type == "continu":
+        #     action_clip = action.clip(
+        #         self.all_args["action_low_limit"],
+        #         self.all_args["action_high_limit"],
+        #     )
+        # else:
+        #     action_clip = action
+        # action_clip = torch.from_numpy(action_clip)
         if noise_processor is not None:
-            action = noise_processor.sample_batch(action)
-        action = np.array(action)
+            action = noise_processor.sample_batch_tensor(action)
         if action_type == "continu":
-            action_clip = action.clip(
-                self.all_args["action_low_limit"],
-                self.all_args["action_high_limit"],
-            )
+            action_low_limit = torch.from_numpy(self.all_args["action_low_limit"]).to(action.device)
+            action_high_limit = torch.from_numpy(self.all_args["action_high_limit"]).to(action.device)
+            action_clip = action.clamp(action_low_limit, action_high_limit)
         else:
             action_clip = action
-        action_clip = torch.from_numpy(action_clip)
+        
+        if not action_clip.is_contiguous():
+            action_clip = action_clip.contiguous()
 
         return action_clip
 
@@ -164,8 +175,14 @@ class PolicyNode(Node):
 
             # copy back
             self.setstate("copy_act")
-            # if not is_cpu:
-            #     act = act.cpu()
+            
+            # import time
+            
+            if not is_cpu:
+                act = act.cpu()
             for idx, env_name in enumerate(env_queue):
+                # t1 = time.time()
                 act_shared[env_name][...] = act[idx]
                 self.send(env_name, "")
+            
+                # print(f'{idx} {env_name} copy_act time: {(time.time() - t1) * 1000} ms. act_shared is shared: {act_shared[env_name].is_shared()}')

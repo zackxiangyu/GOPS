@@ -7,7 +7,7 @@
 #  Email: lisb04@gmail.com
 #
 #  Description: example for sac + humanoidconti + mlp + off_serial
-#  Update Date: 2021-06-11, Yang Yujie: create example
+#  Update Date: 2024-04-09, zack: create example
 
 
 import argparse
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--trainer",
         type=str,
-        default="off_async_trainer",
+        default="off_serial_trainer",
         help="Options: on_serial_trainer, on_sync_trainer, off_serial_trainer, off_async_trainer",
     )
     # Maximum iteration number
@@ -112,10 +112,7 @@ if __name__ == "__main__":
     )
     trainer_type = parser.parse_known_args()[0].trainer
 
-     # 4.1. Parameters for off_async_trainer
-    parser.add_argument("--num_algs", type=int, default=1, help="number of algs")
-    parser.add_argument("--num_samplers", type=int, default=2, help="number of samplers")
-    parser.add_argument("--num_buffers", type=int, default=1, help="number of buffers")
+     # 4.1. Parameters for off_serial_trainer
     parser.add_argument(
         "--buffer_name", type=str, default="replay_buffer", help="Options:replay_buffer/prioritized_replay_buffer"
     )
@@ -150,7 +147,6 @@ if __name__ == "__main__":
     parser.add_argument("--apprfunc_save_interval", type=int, default=50000)
     # Save key info every N updates
     parser.add_argument("--log_save_interval", type=int, default=10000)
-    parser.add_argument("--wandb_mode", type=str, default="online", help="online or offline")
 
     ################################################
     # Get parameter dictionary

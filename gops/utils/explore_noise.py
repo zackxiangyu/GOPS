@@ -11,6 +11,7 @@
 
 
 import numpy as np
+import torch
 
 
 class EpsilonScheduler:
@@ -57,6 +58,19 @@ class EpsilonGreedy:
             return action_batch
         else:
             return np.random.randint(self.action_num, size=action_batch.shape)
+        
+    def sample_batch_tensor(self, action_batch_tensor: torch.Tensor):
+        """
+        Add Gaussian noise directly to a PyTorch tensor.
+
+        Args:
+            action_batch_tensor (torch.Tensor): The batch of actions as a PyTorch tensor.
+
+        Returns:
+            torch.Tensor: The batch of actions with added Gaussian noise.
+        """
+        noise = torch.normal(mean=self.mean, std=self.std, size=action_batch_tensor.shape, device=action_batch_tensor.device)
+        return action_batch_tensor + noise
 
 
 class GaussNoise:
@@ -67,5 +81,18 @@ class GaussNoise:
     def sample(self, action):
         return action + np.random.normal(self.mean, self.std)
 
-    def sample_batch(self, action_batch):
+    def sample_batch(self, action_batch: np.ndarray):
         return action_batch + np.random.normal(self.mean, self.std, size=action_batch.shape)
+    
+    def sample_batch_tensor(self, action_batch_tensor: torch.Tensor):
+        """
+        Add Gaussian noise directly to a PyTorch tensor.
+
+        Args:
+            action_batch_tensor (torch.Tensor): The batch of actions as a PyTorch tensor.
+
+        Returns:
+            torch.Tensor: The batch of actions with added Gaussian noise.
+        """
+        noise = torch.normal(mean=self.mean, std=self.std, size=action_batch_tensor.shape, device=action_batch_tensor.device)
+        return action_batch_tensor + noise

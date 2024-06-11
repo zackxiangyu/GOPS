@@ -164,3 +164,4 @@ dmypy.json
 experiment
 wandb
 profile_log
+*.zip

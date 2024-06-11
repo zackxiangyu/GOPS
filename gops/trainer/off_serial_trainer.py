@@ -16,7 +16,7 @@ __all__ = ["OffSerialTrainer"]
 from cmath import inf
 import os
 import time
-
+import wandb
 import ray
 import torch
 from torch.utils.tensorboard import SummaryWriter
@@ -25,6 +25,7 @@ from gops.utils.common_utils import ModuleOnDevice
 from gops.utils.parallel_task_manager import TaskPool
 from gops.utils.tensorboard_setup import add_scalars, tb_tags
 from gops.utils.log_data import LogData
+from gops.utils.tensorboard_setup import wandb_init
 
 
 class OffSerialTrainer:
@@ -59,6 +60,9 @@ class OffSerialTrainer:
             {tb_tags["alg_time"]: 0, tb_tags["sampler_time"]: 0}, self.writer, 0
         )
         self.writer.flush()
+        # Initialize the wandb.
+        wandb_init(**kwargs)
+        wandb.log({tb_tags["alg_time"]: 0, tb_tags["sampler_time"]: 0}, step=0)
 
         # pre sampling
         while self.buffer.size < kwargs["buffer_warm_size"]:
@@ -106,7 +110,10 @@ class OffSerialTrainer:
         if self.iteration % self.log_save_interval == 0:
             print("Iter = ", self.iteration)
             add_scalars(alg_tb_dict, self.writer, step=self.iteration)
-            add_scalars(self.sampler_tb_dict.pop(), self.writer, step=self.iteration)
+            _sampler_tb_dict = self.sampler_tb_dict.pop()
+            add_scalars(_sampler_tb_dict, self.writer, step=self.iteration)
+            wandb.log(alg_tb_dict, step=self.iteration)
+            wandb.log(_sampler_tb_dict, step=self.iteration)
 
         # save
         if self.iteration % self.apprfunc_save_interval == 0:
@@ -163,6 +170,17 @@ class OffSerialTrainer:
                     total_avg_return,
                     self.sampler.get_total_sample_number(),
                 )
+                wandb.log(
+                    {
+                        tb_tags["Buffer RAM of RL iteration"]: self.buffer.__get_RAM__(), 
+                        tb_tags["TAR of RL iteration"]: total_avg_return,
+                        "Replay samples": self.iteration * self.replay_batch_size,
+                        "Total time": int(time.time() - self.start_time),
+                        "Collected samples": self.sampler.get_total_sample_number(),
+                    },
+                    step=self.iteration
+                )
+                
 
     def train(self):
         while self.iteration < self.max_iteration:

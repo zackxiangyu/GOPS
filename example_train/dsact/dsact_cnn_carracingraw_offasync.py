@@ -157,6 +157,7 @@ if __name__ == "__main__":
     parser.add_argument("--apprfunc_save_interval", type=int, default=50_000)
     # Save key info every N updates
     parser.add_argument("--log_save_interval", type=int, default=5000)
+    parser.add_argument("--wandb_mode", type=str, default="online", help="online or offline")
 
     ################################################
     # Get parameter dictionary

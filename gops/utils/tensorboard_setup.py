@@ -17,7 +17,7 @@ import time
 import webbrowser
 import platform
 import signal
-
+import wandb
 import tensorboard.backend.application
 
 DEFAULT_TB_PORT = 6001
@@ -166,3 +166,34 @@ tb_tags = {
     "critic_avg_value": "Train/Critic avg value-RL iter",
     "lips_value": "Lipschitz/Lipschitz value - RL iter",
 }
+
+
+def wandb_init(**kwargs) -> None:
+    env_name = kwargs.get("env_id", "")
+    vec_env = kwargs.get("vector_env_num", 0)
+    if vec_env:
+        vector_env_type = kwargs.get("vector_env_type", "sync")
+        vec_env = f"vec_env_{vec_env}-{vector_env_type}"
+    else:
+        vec_env = ""
+    algo_name = kwargs.get("algorithm", "UnknownAlgorithm")
+    trainer = kwargs.get("trainer", "UnknownTrainer")
+    if "async" in trainer:
+        num_samplers = kwargs.get("num_samplers", 1)
+        num_algs = kwargs.get("num_algs", 1)
+        num_buffers = kwargs.get("num_buffers", 1)
+        trainer = f"{trainer}-sam_{num_samplers}xalgs_{num_algs}xbuf_{num_buffers}"
+    mode = kwargs.get("wandb_mode", "offline")
+    _project = f"[GOPS] {env_name}"
+    _name = f"{algo_name} {trainer} {vec_env} {time.strftime('%H:%M %m-%d %Y')}"
+    _dir = kwargs.get("save_folder") + "/wandb"
+    os.makedirs(_dir, exist_ok=True)
+    wandb.init(
+        project=_project,
+        name=_name,
+        mode=mode,
+        config=kwargs,
+        dir=_dir,
+    )
+    
+

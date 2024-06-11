@@ -18,7 +18,7 @@ import os
 import random
 import time
 import warnings
-
+import wandb
 import ray
 import torch
 from torch.utils.tensorboard import SummaryWriter
@@ -27,6 +27,7 @@ from gops.utils.common_utils import random_choice_with_index
 from gops.utils.parallel_task_manager import TaskPool
 from gops.utils.tensorboard_setup import add_scalars, tb_tags
 from gops.utils.log_data import LogData
+from gops.utils.tensorboard_setup import wandb_init
 
 warnings.filterwarnings("ignore")
 
@@ -76,6 +77,9 @@ class OffAsyncTrainer:
             {tb_tags["alg_time"]: 0, tb_tags["sampler_time"]: 0}, self.writer, 0
         )
         self.writer.flush()
+        # Initialize the wandb.
+        wandb_init(**kwargs)
+        wandb.log({tb_tags["alg_time"]: 0, tb_tags["sampler_time"]: 0}, step=0)
 
         # create sample tasks and pre sampling
         self.sample_tasks = TaskPool()
@@ -176,7 +180,10 @@ class OffAsyncTrainer:
             if self.iteration % self.log_save_interval == 0:
                 print("Iter = ", self.iteration)
                 add_scalars(alg_tb_dict, self.writer, step=self.iteration)
-                add_scalars(self.sampler_tb_dict.pop(), self.writer, step=self.iteration)
+                _sampler_tb_dict = self.sampler_tb_dict.pop()
+                add_scalars(_sampler_tb_dict, self.writer, step=self.iteration)
+                wandb.log(alg_tb_dict, step=self.iteration)
+                wandb.log(_sampler_tb_dict, step=self.iteration)
 
             # save networks
             if self.iteration % self.apprfunc_save_interval == 0:
@@ -243,6 +250,27 @@ class OffAsyncTrainer:
                             ]
                         )
                     ),
+                )
+                wandb.log(
+                    {
+                        tb_tags["Buffer RAM of RL iteration"]: sum(
+                        ray.get(
+                            [buffer.__get_RAM__.remote() for buffer in self.buffers]
+                        )
+                    ), 
+                        tb_tags["TAR of RL iteration"]: total_avg_return,
+                        "Replay samples": self.iteration * self.replay_batch_size,
+                        "Total time": int(time.time() - self.start_time),
+                        "Collected samples": sum(
+                        ray.get(
+                            [
+                                sampler.get_total_sample_number.remote()
+                                for sampler in self.samplers
+                            ]
+                        )
+                    ),
+                    },
+                    step=self.iteration
                 )
 
     def train(self):

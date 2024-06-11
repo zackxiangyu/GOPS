@@ -16,11 +16,8 @@ import copy
 from gops.create_pkg.create_env import create_env
 from gops.nodes.launcher import launch_nodes
 from gops.utils.init_args import init_args
-from gops.utils.plot_evaluation import plot_all
-from gops.utils.tensorboard_setup import start_tensorboard, save_tb_to_csv
+from gops.utils.tensorboard_setup import save_tb_to_csv
 from gops.utils.common_utils import change_type
-
-os.environ['WANDB_API_KEY'] = "8d3bf9907d76a72a3cce256b3903755c2d06dd51"
 
 
 if __name__ == "__main__":
@@ -83,14 +80,6 @@ if __name__ == "__main__":
     # 3. Parameters for RL algorithm
     parser.add_argument("--value_learning_rate", type=float, default=0.0001)
     parser.add_argument("--policy_learning_rate", type=float, default=0.0001)
-    # parser.add_argument("--policy_scheduler", type=json.loads, default={
-    #     "name": "LinearLR",
-    #     "params": {
-    #         "start_factor": 1.0,
-    #         "end_factor": 0.0,
-    #         "total_iters": 100000,
-    #         }
-    # })
     parser.add_argument("--alpha_learning_rate", type=float, default=0.0003)
     # special parameter
     parser.add_argument("--gamma", type=float, default=0.99)
@@ -113,7 +102,7 @@ if __name__ == "__main__":
     # parser.add_argument("--num_samplers", type=int, default=2, help="number of samplers")
     # parser.add_argument("--num_buffers", type=int, default=1, help="number of buffers")
     # Maximum iteration number
-    parser.add_argument("--max_iteration", type=int, default=500_000)
+    parser.add_argument("--max_iteration", type=int, default=1000000)
     parser.add_argument(
         "--ini_network_dir",
         type=str,
@@ -155,7 +144,7 @@ if __name__ == "__main__":
     parser.add_argument("--apprfunc_save_interval", type=int, default=50_000)
     # Save key info every N updates
     parser.add_argument("--log_save_interval", type=int, default=5000)
-    parser.add_argument("--wandb_mode", type=str, default="offline", help="online or offline")
+    parser.add_argument("--wandb_mode", type=str, default="online", help="online or offline")
     
     # 8. Parallel nodes config path
     parser.add_argument("--config_path", type=str, default='/home/dodo/zack/GOPS/example_train/parallel/dsact_carracingraw/example.yaml', help="Path to config file")
