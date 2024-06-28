@@ -24,7 +24,7 @@
 
 # python dsact/dsact_cnn_carracingraw_offserial.py --max_iteration=400000
 python dsact/dsact_cnn_carracingraw_offasync_ray.py --max_iteration=400000 --num_samplers=4
-python parallel/dsact_carracingraw/dsact_cnn_carracingraw_offasync.py --max_iteration=800000 --env_node_num=4
+python parallel/dsact_carracingraw/dsact_cnn_carracingraw_offasync.py --max_iteration=400000 --env_node_num=4
 
 python sac/sac_mlp_humanoidconti_async.py --max_iteration=600000 --num_samplers=4
 python parallel/sac_humanoid/sac_mlp_humanoidconti_async.py --max_iteration=600000 --env_node_num=4
