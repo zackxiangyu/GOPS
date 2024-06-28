@@ -150,11 +150,12 @@ if __name__ == "__main__":
     # Save key info every N updates
     parser.add_argument("--log_save_interval", type=int, default=5000)
     parser.add_argument("--wandb_mode", type=str, default="online", help="online or offline")
+    parser.add_argument("--wandb_project_sup", type=str, default=None, help="Supplementary information for wandb project")
 
     ################################################
     # Get parameter dictionary
     args = vars(parser.parse_args())
-    env = create_env(**{**args, "vector_env_num": None})
+    env = create_env(**args)
     args = init_args(env, **args)
 
     #start_tensorboard(args["save_folder"])

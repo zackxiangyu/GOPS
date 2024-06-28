@@ -22,8 +22,6 @@ from gops.utils.init_args import init_args, init_node_args
 from gops.utils.tensorboard_setup import save_tb_to_csv
 from gops.utils.common_utils import change_type
 
-os.environ['WANDB_API_KEY'] = "8d3bf9907d76a72a3cce256b3903755c2d06dd51"
-
 
 if __name__ == "__main__":
     # Parameters Setup

@@ -154,7 +154,7 @@ if __name__ == "__main__":
     ################################################
     # Get parameter dictionary
     args = vars(parser.parse_args())
-    env = create_env(**{**args, "vector_env_num": None})
+    env = create_env(**args)
     args = init_args(env, **args)
 
     #start_tensorboard(args["save_folder"])

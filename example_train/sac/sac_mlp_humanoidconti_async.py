@@ -151,6 +151,7 @@ if __name__ == "__main__":
     # Save key info every N updates
     parser.add_argument("--log_save_interval", type=int, default=10000)
     parser.add_argument("--wandb_mode", type=str, default="online", help="online or offline")
+    parser.add_argument("--wandb_project_sup", type=str, default=None, help="Supplementary information for wandb project")
 
     ################################################
     # Get parameter dictionary
@@ -158,7 +159,7 @@ if __name__ == "__main__":
     env = create_env(**args)
     args = init_args(env, **args)
 
-    start_tensorboard(args["save_folder"])
+    # start_tensorboard(args["save_folder"])
     # Step 1: create algorithm and approximate function
     alg = create_alg(**args)
     # Step 2: create sampler in trainer
