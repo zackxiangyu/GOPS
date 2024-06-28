@@ -18,7 +18,7 @@ import multiprocessing
 import os
 from gops.create_pkg.create_env import create_env
 from gops.nodes.launcher import launch_nodes
-from gops.utils.init_args import init_args
+from gops.utils.init_args import init_args, init_node_args
 from gops.utils.tensorboard_setup import save_tb_to_csv
 from gops.utils.common_utils import change_type
 
@@ -149,24 +149,19 @@ if __name__ == "__main__":
     # Save key info every N updates
     parser.add_argument("--log_save_interval", type=int, default=10000)
     parser.add_argument("--wandb_mode", type=str, default="online", help="online or offline")
+    parser.add_argument("--wandb_project_sup", type=str, default=None, help="Supplementary information for wandb project")
     
-    # 8. Parallel nodes config path
+    # 8. Parallel nodes config
     parser.add_argument("--config_path", type=str, default='/home/dodo/zack/GOPS/example_train/parallel/sac_humanoid/example.yaml', help="Path to config file")
-
+    parser.add_argument("--env_node_num", type=int, default=2, help="The number of env node")
+    parser.add_argument("--opt_node_num", type=int, default=1, help="The number of optimizer node")
 
     ################################################
     # Get parameter dictionary
     args = vars(parser.parse_args())
     env = create_env(**args)
     args = init_args(env, **args)
-
-    with open(args["config_path"], "r") as f:
-        config = yaml.safe_load(f)
-        f.close()
-    for ns_name, ns_config in config.items():
-        ns_config["all_args"] = args
-    with open(args["save_folder"] + "/all_config.json", "w", encoding="utf-8") as f:
-        json.dump(change_type(copy.deepcopy(config)), f, ensure_ascii=False, indent=4)
+    config = init_node_args(args)
     launch_nodes(config)
 
     ################################################

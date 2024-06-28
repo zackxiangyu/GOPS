@@ -16,6 +16,7 @@ $global:
   nodes:  # Metric recording node here
     MetricNode:
       num: 1
+      utd_log_interval: 5
 
 $train:
   # Training node configuration

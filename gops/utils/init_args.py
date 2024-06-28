@@ -17,6 +17,7 @@ import os
 import ray
 import torch
 import warnings
+import yaml
 from gym.spaces import Box, Discrete
 from gymnasium.spaces import Box as GymnasiumBox
 from gymnasium.spaces import Discrete as GymnasiumDiscrete
@@ -133,3 +134,21 @@ def init_args(env, **args):
     ray.init(address="local")
 
     return args
+
+
+def init_node_args(args: dict) -> dict:
+    with open(args["config_path"], "r") as f:
+        config = yaml.safe_load(f)
+        f.close()
+    for ns_name, ns_config in config.items():
+        ns_config["all_args"] = args
+        if ns_name == "$train":
+            env_num = args["env_node_num"]
+            opt_num = args["opt_node_num"]
+            if env_num is not None:
+                ns_config["nodes"]["EnvNode"]["num"] = env_num
+            if opt_num is not None:
+                ns_config["nodes"]["OptimizerNode"]["num"] = opt_num
+    with open(args["save_folder"] + "/all_config.json", "w", encoding="utf-8") as f:
+        json.dump(change_type(copy.deepcopy(config)), f, ensure_ascii=False, indent=4)
+    return config

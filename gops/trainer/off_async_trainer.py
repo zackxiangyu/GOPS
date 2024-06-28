@@ -239,17 +239,18 @@ class OffAsyncTrainer:
                     total_avg_return,
                     int(time.time() - self.start_time),
                 )
-                self.writer.add_scalar(
-                    tb_tags["TAR of collected samples"],
-                    total_avg_return,
-                    sum(
+                _collected_samples = sum(
                         ray.get(
                             [
                                 sampler.get_total_sample_number.remote()
                                 for sampler in self.samplers
                             ]
                         )
-                    ),
+                    )
+                self.writer.add_scalar(
+                    tb_tags["TAR of collected samples"],
+                    total_avg_return,
+                    _collected_samples,
                 )
                 wandb.log(
                     {
@@ -261,14 +262,7 @@ class OffAsyncTrainer:
                         tb_tags["TAR of RL iteration"]: total_avg_return,
                         "Replay samples": self.iteration * self.replay_batch_size,
                         "Total time": int(time.time() - self.start_time),
-                        "Collected samples": sum(
-                        ray.get(
-                            [
-                                sampler.get_total_sample_number.remote()
-                                for sampler in self.samplers
-                            ]
-                        )
-                    ),
+                        "Collected samples": _collected_samples,
                     },
                     step=self.iteration
                 )

@@ -25,10 +25,17 @@ class MetricNode(Node):
         env_params_str = ", ".join(k + "=" + v.__repr__() for k, v in env_config.get("params", {}).items())
 
         algo_name = self.all_args.get("algorithm", "UnknownAlgorithm")
-
+        
+        env_node_num = self.all_args.get("env_node_num", "")
+        opt_node_num = self.all_args.get("opt_node_num", "")
+        if env_node_num != "" and opt_node_num != "":
+            node_info = f"envx{env_node_num}_optx{opt_node_num}"
+        else:
+            node_info = ""
+        project_sup = self.all_args.get("wandb_project_sup", "")
         return {
-            "project": "[GOPS] {}".format(env_name),
-            "name": "{} {}".format(algo_name, time.strftime("%H:%M %m-%d %Y"))
+            "project": "[GOPS] {} {}".format(env_name, project_sup),
+            "name": "{} Distr {} {}".format(algo_name, node_info, time.strftime("%H:%M %m-%d %Y"))
         }
 
     def object_to_string_dict(self, obj):

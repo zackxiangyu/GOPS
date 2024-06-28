@@ -17,12 +17,20 @@
 
 # python parallel/sac_halfcheetah/sac_mlp_halfcheetah_offasync.py
 # python sac/sac_mlp_halfcheetah_offasync.py
-python sac/sac_mlp_halfcheetah_vec_offserial.py --vector_env_num=2
-python sac/sac_mlp_ant_vec_offserial.py --vector_env_num=2
-python sac/sac_mlp_ant_vec_offserial.py --vector_env_num=4
-python sac/sac_mlp_halfcheetah_vec_offserial.py --vector_env_num=4
+# python sac/sac_mlp_halfcheetah_vec_offserial.py --vector_env_num=2
+# python sac/sac_mlp_ant_vec_offserial.py --vector_env_num=2
+# python sac/sac_mlp_ant_vec_offserial.py --vector_env_num=4
+# python sac/sac_mlp_halfcheetah_vec_offserial.py --vector_env_num=4
 
-# python dsact/dsact_cnn_carracingraw_offasync_ray.py --max_iteration=200000
-# python parallel/dsact_carracingraw/dsact_cnn_carracingraw_offasync.py --max_iteration=800000
+# python dsact/dsact_cnn_carracingraw_offserial.py --max_iteration=400000
+python dsact/dsact_cnn_carracingraw_offasync_ray.py --max_iteration=400000 --num_samplers=4
+python parallel/dsact_carracingraw/dsact_cnn_carracingraw_offasync.py --max_iteration=800000 --env_node_num=4
 
+python sac/sac_mlp_humanoidconti_async.py --max_iteration=600000 --num_samplers=4
+python parallel/sac_humanoid/sac_mlp_humanoidconti_async.py --max_iteration=600000 --env_node_num=4
 
+python sac/sac_mlp_ant_async.py  --max_iteration=600000 --num_samplers=4
+python parallel/sac_ant/sac_mlp_ant_async.py --max_iteration=600000 --env_node_num=4
+
+python sac/sac_mlp_halfcheetah_offasync.py --max_iteration=1500000 --num_samplers=4
+python parallel/sac_halfcheetah/sac_mlp_halfcheetah_offasync.py --max_iteration=5000000 --env_node_num=4
