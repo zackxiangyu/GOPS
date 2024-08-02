@@ -6,17 +6,13 @@
 #  Lab Leader: Prof. Shengbo Eben Li
 #  Email: lisb04@gmail.com
 #
-#  Description: example for dsac + humanoidconti + mlp + offserial
-#  Update Date: 2021-03-05, Wenxuan Wang: create example
-
+#  Description: example for dsact + humanoidconti + mlp + offasync
+#  Update Date: 2024-08-01, Zack: create example
 import argparse
-import yaml
-import os
 from gops.create_pkg.create_env import create_env
 from gops.nodes.launcher import launch_nodes
-from gops.utils.init_args import init_args
-from gops.utils.plot_evaluation import plot_all
-from gops.utils.tensorboard_setup import start_tensorboard, save_tb_to_csv
+from gops.utils.init_args import init_args, init_node_args
+from gops.utils.tensorboard_setup import save_tb_to_csv
 
 
 if __name__ == "__main__":
@@ -26,12 +22,13 @@ if __name__ == "__main__":
     ################################################
     # Key Parameters for users
     parser.add_argument("--env_id", type=str, default="gym_humanoid", help="id of environment")
-    parser.add_argument("--algorithm", type=str, default="DSAC", help="RL algorithm")
-    parser.add_argument("--enable_cuda", default=False, help="Enable CUDA")
-    parser.add_argument("--seed", default=12345, help="Global seed")
+    parser.add_argument("--algorithm", type=str, default="DSACT", help="RL algorithm")
+    parser.add_argument("--enable_cuda", default=False, help="Disable CUDA")
+    parser.add_argument("--seed", default=12345, help="Enable CUDA")
     ################################################
     # 1. Parameters for environment
     parser.add_argument("--reward_scale", type=float, default=1, help="reward scale factor")
+    parser.add_argument("--action_type", type=str, default="continu", help="Options: continu/discret")
     parser.add_argument("--is_render", type=bool, default=False, help="Draw environment animation")
     parser.add_argument("--is_adversary", type=bool, default=False, help="Adversary training")
 
@@ -43,16 +40,11 @@ if __name__ == "__main__":
         default="ActionValueDistri",
         help="Options: StateValue/ActionValue/ActionValueDis/ActionValueDistri",
     )
-    parser.add_argument("--value_func_type", type=str, default="MLP", help="Options: MLP/CNN/CNN_SHARED/RNN/POLY/GAUSS")
-    value_func_type = parser.parse_known_args()[0].value_func_type
+    parser.add_argument('--value_func_type', type=str, default='MLP')
+    # 2.1.1 MLP, CNN, RNN
     parser.add_argument("--value_hidden_sizes", type=list, default=[256,256,256])
-    parser.add_argument(
-        "--value_hidden_activation", type=str, default="gelu", help="Options: relu/gelu/elu/selu/sigmoid/tanh"
-    )
-    parser.add_argument("--value_output_activation", type=str, default="linear", help="Options: linear/tanh")
-    parser.add_argument("--value_min_log_std", type=int, default=-0.1)
-    parser.add_argument("--value_max_log_std", type=int, default=5)
-
+    parser.add_argument('--value_hidden_activation', type=str, default='gelu')
+    parser.add_argument('--value_output_activation', type=str, default='linear')
     # 2.2 Parameters of policy approximate function
     parser.add_argument(
         "--policy_func_name",
@@ -61,19 +53,14 @@ if __name__ == "__main__":
         help="Options: None/DetermPolicy/FiniteHorizonPolicy/StochaPolicy",
     )
     parser.add_argument(
-        "--policy_func_type", type=str, default="MLP", help="Options: MLP/CNN/CNN_SHARED/RNN/POLY/GAUSS"
-    )
-    parser.add_argument(
         "--policy_act_distribution",
         type=str,
         default="TanhGaussDistribution",
         help="Options: default/TanhGaussDistribution/GaussDistribution",
     )
-    policy_func_type = parser.parse_known_args()[0].policy_func_type
+    parser.add_argument('--policy_func_type', type=str, default='MLP')
     parser.add_argument("--policy_hidden_sizes", type=list, default=[256,256,256])
-    parser.add_argument(
-        "--policy_hidden_activation", type=str, default="gelu", help="Options: relu/gelu/elu/selu/sigmoid/tanh"
-    )
+    parser.add_argument('--policy_hidden_activation', type=str, default='gelu', help='')
     parser.add_argument("--policy_min_log_std", type=int, default=-20)
     parser.add_argument("--policy_max_log_std", type=int, default=0.5)
 
@@ -86,7 +73,7 @@ if __name__ == "__main__":
     parser.add_argument("--gamma", type=float, default=0.99)
     parser.add_argument("--tau", type=float, default=0.005)
     parser.add_argument("--auto_alpha", type=bool, default=True)
-    parser.add_argument("--alpha", type=float, default=0.2)
+    parser.add_argument("--alpha", type=bool, default=0.2)
     parser.add_argument("--delay_update", type=int, default=2)
     parser.add_argument("--TD_bound", type=float, default=10)
     parser.add_argument("--bound", default=True)
@@ -99,21 +86,23 @@ if __name__ == "__main__":
         default="off_serial_trainer",
         help="Options: on_serial_trainer, on_sync_trainer, off_serial_trainer, off_async_trainer",
     )
+    # parser.add_argument("--num_algs", type=int, default=2, help="number of algs")
+    # parser.add_argument("--num_samplers", type=int, default=2, help="number of samplers")
+    # parser.add_argument("--num_buffers", type=int, default=1, help="number of buffers")
     # Maximum iteration number
-    parser.add_argument("--max_iteration", type=int, default=1500000)
+    parser.add_argument("--max_iteration", type=int, default=1000000)
     parser.add_argument(
         "--ini_network_dir",
         type=str,
         default=None
     )
-    trainer_type = parser.parse_known_args()[0].trainer
 
     # 4.1. Parameters for off_serial_trainer
     parser.add_argument(
         "--buffer_name", type=str, default="replay_buffer", help="Options:replay_buffer/prioritized_replay_buffer"
     )
     # Size of collected samples before training
-    parser.add_argument("--buffer_warm_size", type=int, default=10000)
+    parser.add_argument("--buffer_warm_size", type=int, default=10_000)
     # Max size of reply buffer
     parser.add_argument("--buffer_max_size", type=int, default=2*500000)
     # Batch size of replay samples from buffer
@@ -138,32 +127,29 @@ if __name__ == "__main__":
 
     ################################################
     # 7. Data savings
-    parser.add_argument("--save_folder", type=str, default= None)
+    parser.add_argument("--save_folder", type=str, default=None)
     # Save value/policy every N updates
-    parser.add_argument("--apprfunc_save_interval", type=int, default=50000)
+    parser.add_argument("--apprfunc_save_interval", type=int, default=50_000)
     # Save key info every N updates
-    parser.add_argument("--log_save_interval", type=int, default=10000)
+    parser.add_argument("--log_save_interval", type=int, default=5000)
     parser.add_argument("--wandb_mode", type=str, default="online", help="online or offline")
-
-    # 8. Parallel nodes config path
-    parser.add_argument("--config_path", type=str, default='./example.yaml', help="Path to config file")
+    parser.add_argument("--wandb_project_sup", type=str, default=None, help="Supplementary information for wandb project")
+    
+    # 8. Parallel nodes config
+    parser.add_argument("--config_path", type=str, default='./parallel/dsact_humanoid/example.yaml', help="Path to config file")
+    parser.add_argument("--env_node_num", type=int, default=2, help="The number of env node")
+    parser.add_argument("--opt_node_num", type=int, default=1, help="The number of optimizer node")
 
     ################################################
     # Get parameter dictionary
     args = vars(parser.parse_args())
     env = create_env(**args)
     args = init_args(env, **args)
-
-    ################################################
-    with open(args["config_path"], "r") as f:
-        config = yaml.safe_load(f)
-        f.close()
-    for ns_name, ns_config in config.items():
-        ns_config["all_args"] = args
+    config = init_node_args(args)
     launch_nodes(config)
 
     ################################################
     # Plot and save training figures
-    plot_all(args["save_folder"])
+    #plot_all(args["save_folder"])
     save_tb_to_csv(args["save_folder"])
     print("Plot & Save are finished!")
