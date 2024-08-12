@@ -16,9 +16,10 @@
 
 __all__ = ["ApproxContainer", "DSAC"]
 
+import math
 import time
 from copy import deepcopy
-from typing import Tuple
+from typing import Any, Optional, Tuple
 
 import torch
 import torch.nn as nn
@@ -79,22 +80,33 @@ class DSAC(AlgorithmBase):
     :param float tau: param for soft update of target network.
     :param bool auto_alpha: whether to adjust temperature automatically.
     :param float alpha: initial temperature.
-    :param float TD_bound: the bound of temporal difference.
     :param bool bound: whether to bound the q value.
     :param float delay_update: delay update steps for actor.
     :param Optional[float] target_entropy: target entropy for automatic
         temperature adjustment.
     """
 
-    def __init__(self, index=0, **kwargs):
+    def __init__(
+        self,
+        index: int = 0,
+        gamma: float = 0.99,
+        tau: float = 0.005,
+        alpha: float = math.e,
+        auto_alpha: bool = True,
+        target_entropy: Optional[float] = None,
+        bound: bool = True,
+        **kwargs: Any,
+    ):
         super().__init__(index, **kwargs)
         self.networks = ApproxContainer(**kwargs)
-        self.gamma = kwargs["gamma"]
-        self.tau = kwargs["tau"]
-        self.target_entropy = -kwargs["action_dim"]
-        self.auto_alpha = kwargs["auto_alpha"]
-        self.alpha = kwargs.get("alpha", 0.2)
-        self.bound = kwargs["bound"]
+        self.networks.log_alpha.data.fill_(math.log(alpha))
+        self.gamma = gamma
+        self.tau = tau
+        self.auto_alpha = auto_alpha
+        if target_entropy is None:
+            target_entropy = -kwargs["action_dim"]
+        self.target_entropy = target_entropy
+        self.bound = bound
         self.delay_update = kwargs["delay_update"]
 
     @property
@@ -109,14 +121,14 @@ class DSAC(AlgorithmBase):
         )
 
     def local_update(self, data: DataDict, iteration: int) -> dict:
-        tb_info = self.__compute_gradient(data, iteration)
-        self.__update(iteration)
+        tb_info = self._compute_gradient(data, iteration)
+        self._update(iteration)
         return tb_info
 
     def get_remote_update_info(
         self, data: DataDict, iteration: int
     ) -> Tuple[dict, dict]:
-        tb_info = self.__compute_gradient(data, iteration)
+        tb_info = self._compute_gradient(data, iteration)
 
         update_info = {
             "q_grad": [p._grad for p in self.networks.q.parameters()],
@@ -140,19 +152,16 @@ class DSAC(AlgorithmBase):
         if self.auto_alpha:
             self.networks.log_alpha._grad = update_info["log_alpha_grad"]
 
-        self.__update(iteration)
+        self._update(iteration)
 
-    def __get_alpha(self, requires_grad: bool = False):
-        if self.auto_alpha:
-            alpha = self.networks.log_alpha.exp()
-            if requires_grad:
-                return alpha
-            else:
-                return alpha.item()
+    def _get_alpha(self, requires_grad: bool = False):
+        alpha = self.networks.log_alpha.exp()
+        if requires_grad:
+            return alpha
         else:
-            return self.alpha
+            return alpha.item()
 
-    def __compute_gradient(self, data: DataDict, iteration: int):
+    def _compute_gradient(self, data: DataDict, iteration: int):
         start_time = time.time()
 
         obs = data["obs"]
@@ -165,14 +174,14 @@ class DSAC(AlgorithmBase):
         data.update({"new_act": new_act, "new_log_prob": new_log_prob})
 
         self.networks.q_optimizer.zero_grad()
-        loss_q, q, std = self.__compute_loss_q(data)
+        loss_q, q, std = self._compute_loss_q(data)
         loss_q.backward()
 
         for p in self.networks.q.parameters():
             p.requires_grad = False
 
         self.networks.policy_optimizer.zero_grad()
-        loss_policy, entropy = self.__compute_loss_policy(data)
+        loss_policy, entropy = self._compute_loss_policy(data)
         loss_policy.backward()
 
         for p in self.networks.q.parameters():
@@ -180,7 +189,7 @@ class DSAC(AlgorithmBase):
 
         if self.auto_alpha:
             self.networks.alpha_optimizer.zero_grad()
-            loss_alpha = self.__compute_loss_alpha(data)
+            loss_alpha = self._compute_loss_alpha(data)
             loss_alpha.backward()
 
         tb_info = {
@@ -190,13 +199,13 @@ class DSAC(AlgorithmBase):
             "DSAC/policy_mean-RL iter": policy_mean,
             "DSAC/policy_std-RL iter": policy_std,
             "DSAC/entropy-RL iter": entropy.item(),
-            "DSAC/alpha-RL iter": self.__get_alpha(),
+            "DSAC/alpha-RL iter": self._get_alpha(),
             tb_tags["alg_time"]: (time.time() - start_time) * 1000,
         }
 
         return tb_info
 
-    def __q_evaluate(self, obs, act, qnet, use_min=False):
+    def _q_evaluate(self, obs, act, qnet, use_min=False):
         StochaQ = qnet(obs, act)
         mean, std = StochaQ[..., 0], StochaQ[..., -1]
         normal = Normal(torch.zeros(mean.shape, device=mean.device), torch.ones(std.shape, device=mean.device))
@@ -208,7 +217,7 @@ class DSAC(AlgorithmBase):
         q_value = mean + torch.mul(z, std)
         return mean, std, q_value
 
-    def __compute_loss_q(self, data: DataDict):
+    def _compute_loss_q(self, data: DataDict):
         obs, act, rew, obs2, done = (
             data["obs"],
             data["act"],
@@ -220,11 +229,11 @@ class DSAC(AlgorithmBase):
         act2_dist = self.networks.create_action_distributions(logits_2)
         act2, log_prob_act2 = act2_dist.rsample()
 
-        q, q_std, q_sample = self.__q_evaluate(obs, act, self.networks.q, use_min=False)
-        _, _, q_next_sample = self.__q_evaluate(
+        q, q_std, q_sample = self._q_evaluate(obs, act, self.networks.q, use_min=False)
+        _, _, q_next_sample = self._q_evaluate(
             obs2, act2, self.networks.q_target, use_min=False
         )
-        target_q, target_q_bound = self.__compute_target_q(
+        target_q, target_q_bound = self._compute_target_q(
             rew,
             done,
             q.detach(),
@@ -242,23 +251,23 @@ class DSAC(AlgorithmBase):
             q_loss = -Normal(q, q_std).log_prob(target_q).mean()
         return q_loss, q.detach().mean(), q_std.detach().mean()
 
-    def __compute_target_q(self, r, done, q, q_std, q_next, log_prob_a_next):
+    def _compute_target_q(self, r, done, q, q_std, q_next, log_prob_a_next):
         target_q = r + (1 - done) * self.gamma * (
-            q_next - self.__get_alpha() * log_prob_a_next
+            q_next - self._get_alpha() * log_prob_a_next
         )
         td_bound = 3 * torch.mean(q_std)
         difference = torch.clamp(target_q - q, -td_bound, td_bound)
         target_q_bound = q + difference
         return target_q.detach(), target_q_bound.detach()
 
-    def __compute_loss_policy(self, data: DataDict):
+    def _compute_loss_policy(self, data: DataDict):
         obs, new_act, new_log_prob = data["obs"], data["new_act"], data["new_log_prob"]
-        q, _, _ = self.__q_evaluate(obs, new_act, self.networks.q, use_min=False)
-        loss_policy = (self.__get_alpha() * new_log_prob - q).mean()
+        q, _, _ = self._q_evaluate(obs, new_act, self.networks.q, use_min=False)
+        loss_policy = (self._get_alpha() * new_log_prob - q).mean()
         entropy = -new_log_prob.detach().mean()
         return loss_policy, entropy
 
-    def __compute_loss_alpha(self, data: DataDict):
+    def _compute_loss_alpha(self, data: DataDict):
         new_log_prob = data["new_log_prob"]
         loss_alpha = (
             -self.networks.log_alpha
@@ -266,7 +275,7 @@ class DSAC(AlgorithmBase):
         )
         return loss_alpha
 
-    def __update(self, iteration: int):
+    def _update(self, iteration: int):
         self.networks.q_optimizer.step()
 
         if iteration % self.delay_update == 0:

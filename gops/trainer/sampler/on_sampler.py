@@ -167,7 +167,7 @@ class OnSampler(BaseSampler):
 
     def _finish_trajs(self, env_index: int, est_last_val: float):
         # calculate value target (mb_ret) & gae (mb_adv) whenever episode is finished
-        path_slice = slice(self.last_ptr[env_index], self.ptr[env_index] + 1)
+        path_slice = slice(self.last_ptr[env_index] + 1, self.ptr[env_index] + 1)
         value_preds_slice = np.append(self.mb_val[env_index, path_slice], est_last_val)
         rews_slice = self.mb_rew[env_index, path_slice]
         length = len(rews_slice)

@@ -13,10 +13,10 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 
-from gops.env.env_ocp.pyth_veh3dofconti import SimuVeh3dofconti
+from gops.env.env_ocp.pyth_veh3dofconti import PythVeh3dofconti
 
 
-class SimuVeh3dofcontiErrCstr(SimuVeh3dofconti):
+class PythVeh3dofcontiErrCstr(PythVeh3dofconti):
     def __init__(
         self,
         pre_horizon: int = 10,
@@ -29,9 +29,11 @@ class SimuVeh3dofcontiErrCstr(SimuVeh3dofconti):
         super().__init__(pre_horizon, path_para, u_para, **kwargs)
         self.y_error_tol = y_error_tol
         self.u_error_tol = u_error_tol
-        self.info_dict.update(
-            {"constraint": {"shape": (2,), "dtype": np.float32},}
-        )
+    
+    @property
+    def additional_info(self) -> Dict[str, Dict]:
+        additional_info = super().additional_info
+        return additional_info.update({"constraint": {"shape": (2,), "dtype": np.float32},})
 
     def get_constraint(self) -> np.ndarray:
         y, u = self.state[1], self.state[3]
@@ -52,4 +54,4 @@ class SimuVeh3dofcontiErrCstr(SimuVeh3dofconti):
 
 
 def env_creator(**kwargs):
-    return SimuVeh3dofcontiErrCstr(**kwargs)
+    return PythVeh3dofcontiErrCstr(**kwargs)

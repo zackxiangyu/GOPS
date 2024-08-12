@@ -2,6 +2,7 @@ from typing import Optional, Union
 
 import torch
 import numpy as np
+import math
 
 from gops.env.env_gen_ocp.env_model.pyth_base_model import EnvModel
 from gops.env.env_gen_ocp.pyth_base import State
@@ -80,7 +81,7 @@ class Veh3DoFTrackingDetourModel(EnvModel):
         # distance from vehicle center to front/rear circle center
         d = (self.veh_length - self.veh_width) / 2
         # circle radius
-        r = 0.5 * self.veh_width
+        r = 0.5 * self.veh_width * math.sqrt(2)
         ego_obs = state.robot_state
         x, y, phi = ego_obs[:, :3].split(1, dim=1)
         ego_center = torch.stack(

@@ -1,5 +1,6 @@
-from typing import Dict, Optional, Sequence, Tuple
+from typing import Dict, Optional, Sequence, Tuple, Union
 
+from gops.env.env_gen_ocp.pyth_base import State
 import numpy as np
 from gym import spaces
 from gops.env.env_gen_ocp.robot.veh3dof import angle_normalize
@@ -27,8 +28,8 @@ class Veh3DoFTrackingDetour(Veh3DoFTracking):
             max_steer=max_steer,
             **kwargs,
         )
-        self.init_high = np.array([1, 0.0, np.pi / 36, 2, 0.1, 0.1], dtype=np.float32)
-        self.init_low = -np.array([1, 0.8, np.pi / 36, 2, 0.1, 0.1], dtype=np.float32)
+        self.init_high = np.array([1, 0.0, 0., -0.5, 0., 0.], dtype=np.float32)
+        self.init_low = -np.array([1, 0.8, np.pi / 10, 1., 0., 0.], dtype=np.float32)
 
         self.context: RefTrajWithStaticObstacleContext = RefTrajWithStaticObstacleContext(
             pre_horizon=pre_horizon,
@@ -70,7 +71,7 @@ class Veh3DoFTrackingDetour(Veh3DoFTracking):
         veh_width = self.context.veh_width
         d = (veh_length - veh_width) / 2
         # circle radius
-        r = 0.5 * veh_width
+        r = 0.5 * veh_width * np.sqrt(2)
 
         ego_x, ego_y, ego_phi = self.robot.state[:3]
         ego_center = np.array(
@@ -175,6 +176,13 @@ class Veh3DoFTrackingDetour(Veh3DoFTracking):
         ax.plot(upper_x, upper_y, "k")
         ax.plot(lower_x, lower_y, "k")
 
+    @property
+    def additional_info(self) -> Dict[str, Union[State[np.ndarray], Dict]]:
+        additional_info = super().additional_info
+        additional_info.update({
+            "constraint": {"shape": (1,), "dtype": np.float32},
+        })
+        return additional_info
 
 def env_creator(**kwargs):
     return Veh3DoFTrackingDetour(**kwargs)

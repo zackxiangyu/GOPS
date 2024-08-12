@@ -81,7 +81,6 @@ if __name__ == "__main__":
 
     ################################################
     # 3. Parameters for RL algorithm
-    parser.add_argument("--value_learning_rate", type=float, default=0.0001)
     parser.add_argument("--q_learning_rate", type=float, default=0.0001)
     parser.add_argument("--policy_learning_rate", type=float, default=0.0001)
     parser.add_argument("--alpha_learning_rate", type=float, default=0.0003)
@@ -89,10 +88,6 @@ if __name__ == "__main__":
     parser.add_argument("--gamma", type=float, default=0.99)
     parser.add_argument("--tau", type=float, default=0.005)
     parser.add_argument("--auto_alpha", type=bool, default=True)
-    parser.add_argument("--alpha", type=float, default=0.2)
-    parser.add_argument("--delay_update", type=int, default=2)
-    parser.add_argument("--TD_bound", type=float, default=10)
-    parser.add_argument("--bound", default=True)
 
     ################################################
     # 4. Parameters for trainer
