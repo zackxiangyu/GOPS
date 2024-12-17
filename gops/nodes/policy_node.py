@@ -176,13 +176,8 @@ class PolicyNode(Node):
             # copy back
             self.setstate("copy_act")
             
-            # import time
-            
             if not is_cpu:
                 act = act.cpu()
             for idx, env_name in enumerate(env_queue):
-                # t1 = time.time()
                 act_shared[env_name][...] = act[idx]
                 self.send(env_name, "")
-            
-                # print(f'{idx} {env_name} copy_act time: {(time.time() - t1) * 1000} ms. act_shared is shared: {act_shared[env_name].is_shared()}')

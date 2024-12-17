@@ -138,6 +138,8 @@ class MultiplierNet(nn.Module, Action_Distribution):
         expand_obs = torch.cat((obs, virtual_t), 1)
         multiplier = self.pi(expand_obs)
         return multiplier
+    
+
 class FiniteHorizonFullPolicy(nn.Module, Action_Distribution):
     """
     Approximated function of deterministic policy for finite-horizon.

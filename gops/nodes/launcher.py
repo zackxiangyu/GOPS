@@ -1,3 +1,4 @@
+import os
 import collections
 import multiprocessing as mp
 import argparse
@@ -21,9 +22,22 @@ def get_node_class(node_class, node_params):
     return get_class_from_str(import_name, node_class)
 
 
-def node_worker_(**kwargs):
-    node_class_type = get_node_class(kwargs["node_class"], kwargs["node_config"])
+def set_cpu_affinity(cpu_ids):
+    try:
+        os.sched_setaffinity(0, cpu_ids)
+        print(f"Process bound to CPUs: {cpu_ids}")
+    except AttributeError:
+        print("CPU affinity setting is not supported on this system.")
 
+
+def node_worker_(**kwargs):
+    # Set CPU affinity for each node based on its global rank
+    global_rank = kwargs.pop("global_rank", 0)
+    # Here we use a simple round-robin assignment for demonstration
+    cpu_ids = [global_rank % os.cpu_count()]
+    set_cpu_affinity(cpu_ids)
+
+    node_class_type = get_node_class(kwargs["node_class"], kwargs["node_config"])
     node_inst = node_class_type(**kwargs)
     node_inst.run()
 
@@ -42,6 +56,7 @@ def launch_nodes(yaml_config: dict):
     global_ns.pop("nodes", None)
     # apply global to all
     all_ns_config = {}
+    global_rank_counter = 0  # Initialize global rank counter
     for ns_name, ns_config in yaml_config.items():
         if ns_name == "$global":
             all_ns_config[ns_name] = ns_config
@@ -74,10 +89,12 @@ def launch_nodes(yaml_config: dict):
                                    "node_class": node_class,
                                    "node_ns": ns_name,
                                    "node_rank": rank,
+                                   "global_rank": global_rank_counter,
                                    "node_config": node_params,
                                    "ns_config": ns_config,
                                    "global_objects": global_objects
                              }}
+                global_rank_counter += 1  # Increment global rank
                 processes.append([mp.Process(**proc_args), proc_args])
 
     # start & join

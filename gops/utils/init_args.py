@@ -26,16 +26,17 @@ from gops.utils.common_utils import change_type, seed_everything
 
 
 def init_args(env, **args):
-    # set torch parallel threads nums in main process
-    num_threads_main = args.get("num_threads_main", None)
-    if num_threads_main is None:
-        if "serial" in args["trainer"]:
-            num_threads_main = 4
-        else:
-            num_threads_main = 1
-    torch.set_num_threads(num_threads_main)
-    print("limit torch intra-op parallel threads num in main process "
-          "to {num} for saving computing resource.".format(num=num_threads_main))
+    if args.get('config_path', None) is None:
+        # set torch parallel threads nums in main process
+        num_threads_main = args.get("num_threads_main", None)
+        if num_threads_main is None:
+            if "serial" in args["trainer"]:
+                num_threads_main = 4
+            else:
+                num_threads_main = 1
+        torch.set_num_threads(num_threads_main)
+        print("limit torch intra-op parallel threads num in main process "
+            "to {num} for saving computing resource.".format(num=num_threads_main))
 
     # cuda
     if args["enable_cuda"]:
@@ -131,7 +132,8 @@ def init_args(env, **args):
 
     # Start a new local Ray instance
     # This is necessary since all training scripts use evaluator, which uses ray.
-    ray.init(address="local")
+    if args.get('config_path', None) is None:
+        ray.init(address="local")
 
     return args
 
