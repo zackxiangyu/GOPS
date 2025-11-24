@@ -89,7 +89,7 @@ def create_alg(**kwargs) -> object:
         import ray
         if _kwargs.get("use_gpu", False):
             import torch
-            EPSILON = 0.001
+            EPSILON = 0.00
             num_gpus = torch.cuda.device_count() / _kwargs["num_algs"] - EPSILON
         else:
             num_gpus = 0
