@@ -20,7 +20,7 @@ dependencies:
   - pip
   - pip:
     - gym==0.23.1
-    - gymnasium
+    - gymnasium==0.29.1
     - box2d
     - pygame
     - pyglet
@@ -33,3 +33,11 @@ dependencies:
     - patchelf
     - wandb
     - opencv-python
+    - ray==2.8.0
+    - pandas==2.0.3
+    - matplotlib
+    - seaborn
+    - scipy
+    - tensorboard>=2.5.0
+    - cython==0.29.36
+    - pydantic==1.10.13

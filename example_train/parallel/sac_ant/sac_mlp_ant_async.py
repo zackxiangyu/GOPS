@@ -151,7 +151,7 @@ if __name__ == "__main__":
     parser.add_argument("--wandb_project_sup", type=str, default=None, help="Supplementary information for wandb project")
     
     # 8. Parallel nodes config
-    parser.add_argument("--config_path", type=str, default='/home/dodo/zack/GOPS/example_train/parallel/sac_ant/example.yaml', help="Path to config file")
+    parser.add_argument("--config_path", type=str, default='parallel/sac_ant/example.yaml', help="Path to config file")
     parser.add_argument("--env_node_num", type=int, default=2, help="The number of env node")
     parser.add_argument("--opt_node_num", type=int, default=1, help="The number of optimizer node")
 
